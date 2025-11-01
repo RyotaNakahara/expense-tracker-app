@@ -10,13 +10,27 @@ node_modules/
 /build
 /dist
 
+# Vite
+.vite/
+*vite.config.js.timestamp-*
+*vite.config.ts.timestamp-*
+
 # その他 (Misc)
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 環境変数ファイル (Environment variables)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.local
 
 # ログファイル (Logs)
 npm-debug.log*
@@ -73,12 +87,28 @@ out/
 
 # Gatsby (使用する場合) (if using Gatsby)
 .cache/
-public
+# Note: public/ ディレクトリはReact + Viteアプリではコミット対象です
 
 # Storybook (使用する場合) (if using Storybook)
 storybook-static
 
+# TypeScript
+*.tsbuildinfo
+
+# デプロイ関連 (Deployment)
+.vercel
+.netlify
+.railway
+
 # 一時ファイル (Temporary files)
 *.tmp
 *.temp
+*.log
 
+# ローカル設定ファイル (Local configuration files)
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
