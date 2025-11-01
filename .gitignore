@@ -1,0 +1,84 @@
+# 依存関係 (Dependencies)
+node_modules/
+/.pnp
+.pnp.js
+
+# テスト (Testing)
+/coverage
+
+# プロダクションビルド (Production)
+/build
+/dist
+
+# その他 (Misc)
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ログファイル (Logs)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# エディタディレクトリとファイル (Editor directories and files)
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Firebase
+.firebase/
+firebase-export-*/
+.firebaserc.backup
+firebase-*.cache
+
+# npmキャッシュディレクトリ（オプション） (Optional npm cache directory)
+.npm
+
+# ESLintキャッシュ（オプション） (Optional eslint cache)
+.eslintcache
+
+# REPL履歴（オプション） (Optional REPL history)
+.node_repl_history
+
+# 'npm pack'の出力 (Output of 'npm pack')
+*.tgz
+
+# Yarn Integrity ファイル (Yarn Integrity file)
+.yarn-integrity
+
+# parcel-bundlerキャッシュ (parcel-bundler cache) (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js (使用する場合) (if using Next.js)
+.next/
+out/
+
+# Nuxt.js (使用する場合) (if using Nuxt.js)
+.nuxt
+
+# Gatsby (使用する場合) (if using Gatsby)
+.cache/
+public
+
+# Storybook (使用する場合) (if using Storybook)
+storybook-static
+
+# 一時ファイル (Temporary files)
+*.tmp
+*.temp
+
