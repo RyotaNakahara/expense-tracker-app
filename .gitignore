@@ -31,6 +31,8 @@ Thumbs.db
 .env.test.local
 .env.production.local
 *.local
+.envrc
+.env.*.local
 
 # ログファイル (Logs)
 npm-debug.log*
@@ -58,6 +60,17 @@ ui-debug.log
 firebase-export-*/
 .firebaserc.backup
 firebase-*.cache
+# Note: firebase.json と .firebaserc は通常コミット対象です（機密情報は含まれません）
+# ただし、サービスアカウントキーなどの機密情報が含まれるファイルは除外してください
+firebase-service-account-*.json
+serviceAccountKey.json
+
+# Firebase Functions (Cloud Functions for Firebase)
+functions/lib/
+functions/node_modules/
+functions/.env
+functions/.env.*
+functions/.runtimeconfig.json
 
 # npmキャッシュディレクトリ（オプション） (Optional npm cache directory)
 .npm
@@ -94,6 +107,7 @@ storybook-static
 
 # TypeScript
 *.tsbuildinfo
+*.d.ts.map
 
 # デプロイ関連 (Deployment)
 .vercel
@@ -112,3 +126,38 @@ storybook-static
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
+# 秘密鍵・証明書ファイル (Private keys and certificates)
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+
+# バックアップファイル (Backup files)
+*.bak
+*.backup
+# Note: *~, *.swp, *.swo はエディタファイルセクションに含まれています
+
+# 一時的なファイル (Temporary files)
+*.orig
+*.rej
+*.diff
+*.patch
+
+# テスト関連 (Testing) - 補足
+# Note: /coverage は上部のテストセクションに含まれています
+.jest/
+.nyc_output/
+*.lcov
+
+# Turborepo (使用する場合) (if using Turborepo)
+.turbo/
+
+# その他のビルドツール (Other build tools)
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
