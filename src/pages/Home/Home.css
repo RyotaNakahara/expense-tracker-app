@@ -1,0 +1,137 @@
+.home-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.home-login-link-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.home-login-link {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background-color: #1d4ed8;
+  color: #ffffff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.home-login-link:hover {
+  background-color: #1e40af;
+}
+
+.home-test-button-wrapper {
+  margin-bottom: 2rem;
+}
+
+.home-test-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.home-test-button:not(:disabled):hover {
+  background-color: #2563eb;
+}
+
+.home-test-button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.home-test-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.home-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.home-result-card {
+  padding: 1rem;
+  border: 2px solid #6b7280;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  transition: border-color 0.2s ease;
+}
+
+.home-result-card--success {
+  border-color: #10b981;
+}
+
+.home-result-card--error {
+  border-color: #ef4444;
+}
+
+.home-result-card--loading {
+  border-color: #3b82f6;
+}
+
+.home-result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.home-status-icon {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6b7280;
+}
+
+.home-status-icon--success {
+  color: #10b981;
+}
+
+.home-status-icon--error {
+  color: #ef4444;
+}
+
+.home-status-icon--loading {
+  color: #3b82f6;
+}
+
+.home-result-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.home-result-message {
+  margin: 0.5rem 0 0 0;
+  color: #4b5563;
+}
+
+.home-empty-message {
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+.home-settings {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #eff6ff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.home-settings-title {
+  margin-top: 0;
+}
+
+.home-settings-list {
+  margin: 0;
+  padding-left: 1.5rem;
+}
