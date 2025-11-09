@@ -17,7 +17,7 @@ const Home = () => {
     const results: TestResult[] = []
 
     // 少し遅延を入れて状態変化を見やすくする
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     // 1. 環境変数の確認
     results.push({
@@ -28,8 +28,7 @@ const Home = () => {
     setTestResults([...results])
 
     const hasEnvVars =
-      import.meta.env.VITE_FIREBASE_API_KEY &&
-      import.meta.env.VITE_FIREBASE_PROJECT_ID
+      import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_PROJECT_ID
 
     if (hasEnvVars) {
       results[0] = {
@@ -172,17 +171,13 @@ const Home = () => {
               </span>
               <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{result.name}</h3>
             </div>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#4b5563' }}>
-              {result.message}
-            </p>
+            <p style={{ margin: '0.5rem 0 0 0', color: '#4b5563' }}>{result.message}</p>
           </div>
         ))}
       </div>
 
       {testResults.length === 0 && (
-        <p style={{ color: '#6b7280', fontStyle: 'italic' }}>
-          テストを実行中...
-        </p>
+        <p style={{ color: '#6b7280', fontStyle: 'italic' }}>テストを実行中...</p>
       )}
 
       <div
@@ -203,12 +198,10 @@ const Home = () => {
               : '未設定'}
           </li>
           <li>
-            <strong>Project ID:</strong>{' '}
-            {import.meta.env.VITE_FIREBASE_PROJECT_ID || '未設定'}
+            <strong>Project ID:</strong> {import.meta.env.VITE_FIREBASE_PROJECT_ID || '未設定'}
           </li>
           <li>
-            <strong>Auth Domain:</strong>{' '}
-            {import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '未設定'}
+            <strong>Auth Domain:</strong> {import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '未設定'}
           </li>
         </ul>
       </div>
