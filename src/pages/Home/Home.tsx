@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import app from '../firebase/config'
+import { Link } from 'react-router-dom'
+import app from '../../firebase/config'
+import './Home.css'
 
 interface TestResult {
   name: string
@@ -85,19 +87,6 @@ const Home = () => {
     runTests()
   }, [])
 
-  const getStatusColor = (status: TestResult['status']) => {
-    switch (status) {
-      case 'success':
-        return '#10b981' // green
-      case 'error':
-        return '#ef4444' // red
-      case 'loading':
-        return '#3b82f6' // blue
-      default:
-        return '#6b7280' // gray
-    }
-  }
-
   const getStatusText = (status: TestResult['status']) => {
     switch (status) {
       case 'success':
@@ -112,85 +101,48 @@ const Home = () => {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="home-container">
       <h1>Expense Tracker App</h1>
       <h2>Firebase接続テスト</h2>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <div className="home-login-link-wrapper">
+        <Link className="home-login-link" to="/login">
+          ログインページへ
+        </Link>
+      </div>
+
+      <div className="home-test-button-wrapper">
         <button
+          className="home-test-button"
           onClick={() => {
             console.log('ボタンクリック')
             runTests()
           }}
           disabled={isTesting}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            backgroundColor: isTesting ? '#9ca3af' : '#3b82f6',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: isTesting ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (!isTesting) {
-              e.currentTarget.style.backgroundColor = '#2563eb'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isTesting) {
-              e.currentTarget.style.backgroundColor = '#3b82f6'
-            }
-          }}
         >
           {isTesting ? 'テスト実行中...' : 'テストを再実行'}
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="home-result-list">
         {testResults.map((result, index) => (
-          <div
-            key={index}
-            style={{
-              padding: '1rem',
-              border: `2px solid ${getStatusColor(result.status)}`,
-              borderRadius: '8px',
-              backgroundColor: '#f9fafb',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span
-                style={{
-                  fontSize: '1.5rem',
-                  color: getStatusColor(result.status),
-                  fontWeight: 'bold',
-                }}
-              >
+          <div key={index} className={`home-result-card home-result-card--${result.status}`}>
+            <div className="home-result-header">
+              <span className={`home-status-icon home-status-icon--${result.status}`}>
                 {getStatusText(result.status)}
               </span>
-              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{result.name}</h3>
+              <h3 className="home-result-title">{result.name}</h3>
             </div>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#4b5563' }}>{result.message}</p>
+            <p className="home-result-message">{result.message}</p>
           </div>
         ))}
       </div>
 
-      {testResults.length === 0 && (
-        <p style={{ color: '#6b7280', fontStyle: 'italic' }}>テストを実行中...</p>
-      )}
+      {testResults.length === 0 && <p className="home-empty-message">テストを実行中...</p>}
 
-      <div
-        style={{
-          marginTop: '2rem',
-          padding: '1rem',
-          backgroundColor: '#eff6ff',
-          borderRadius: '8px',
-          fontSize: '0.9rem',
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>設定情報</h3>
-        <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+      <div className="home-settings">
+        <h3 className="home-settings-title">設定情報</h3>
+        <ul className="home-settings-list">
           <li>
             <strong>API Key:</strong>{' '}
             {import.meta.env.VITE_FIREBASE_API_KEY
