@@ -1,17 +1,34 @@
-import { FormEvent, useState } from 'react'
+// React からフォームイベント型・副作用フック・状態管理フックを読み込む
+import { FormEvent, useEffect, useState } from 'react'
+// 画面遷移やリダイレクトに利用する React Router のフック
+import { useNavigate } from 'react-router-dom'
+// Firebase Authentication のメール+パスワードログイン関数
 import { signInWithEmailAndPassword } from 'firebase/auth'
+// 初期化済みの Firebase Auth インスタンス
 import { auth } from '../../firebase/config'
+// アプリ全体で共有している認証状態コンテキスト
+import { useAuth } from '../../context/AuthContext'
+// ログイン画面専用のスタイル
 import './Login.css'
 
 // Firebase Authentication を利用したメール・パスワードログイン画面のコンポーネントです。
 
 const Login = () => {
   // ユーザーがフォームに入力した内容と、操作状態・メッセージを管理するためのステート
+  const navigate = useNavigate()
+  const { user, loading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+
+  // 認証状態を監視し、既にログイン済みの場合はダッシュボードへ遷移
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [loading, user, navigate])
 
   // フォーム送信時に Firebase Authentication へサインインをリクエストする処理
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -32,6 +49,7 @@ const Login = () => {
       await signInWithEmailAndPassword(auth, email, password)
       setSuccessMessage('ログインに成功しました')
       setPassword('')
+      navigate('/dashboard', { replace: true })
     } catch (error) {
       // Firebase が返すエラーコードを日本語メッセージに変換して表示
       if (error instanceof Error) {
@@ -42,6 +60,15 @@ const Login = () => {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // 読み込み中は UI にプレースホルダーメッセージを表示
+  if (loading) {
+    return (
+      <div className="login-loading">
+        <p>認証状態を確認しています...</p>
+      </div>
+    )
   }
 
   return (
