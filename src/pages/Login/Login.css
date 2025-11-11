@@ -20,6 +20,17 @@
   overflow: hidden;
 }
 
+.login-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fb;
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
 .login-hero {
   position: relative;
   padding: clamp(1.8rem, 2vw + 0.9rem, 2.4rem);
