@@ -69,6 +69,127 @@
   line-height: 1.6;
 }
 
+.welcome-section,
+.expenses-section {
+  grid-column: 1 / -1;
+}
+
+.expenses-table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.expenses-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.expenses-table thead {
+  background-color: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.expenses-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+/* 列幅の調整 */
+.expenses-table th.col-date,
+.expenses-table td.col-date {
+  width: 100px;
+  min-width: 100px;
+}
+
+.expenses-table th.col-amount {
+  width: 120px;
+  min-width: 120px;
+  text-align: right;
+}
+
+.expenses-table td.col-amount {
+  width: 120px;
+  min-width: 120px;
+  text-align: right;
+}
+
+.expenses-table th.col-category,
+.expenses-table td.col-category {
+  width: 120px;
+  min-width: 120px;
+}
+
+.expenses-table th.col-tags,
+.expenses-table td.col-tags {
+  width: 150px;
+  min-width: 150px;
+}
+
+.expenses-table th.col-description,
+.expenses-table td.col-description {
+  width: auto;
+  min-width: 200px;
+}
+
+.expenses-table th.col-payment,
+.expenses-table td.col-payment {
+  width: 120px;
+  min-width: 120px;
+}
+
+.expenses-table th.col-created,
+.expenses-table td.col-created {
+  width: 150px;
+  min-width: 150px;
+}
+
+.expenses-table th.col-updated,
+.expenses-table td.col-updated {
+  width: 150px;
+  min-width: 150px;
+}
+
+.expenses-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.expenses-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.expense-amount {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.datetime-cell {
+  font-size: 0.85rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .dashboard-page {
     padding: 1.5rem;
@@ -83,6 +204,20 @@
   .dashboard-user-info {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .expenses-table {
+    font-size: 0.8rem;
+  }
+
+  .expenses-table th,
+  .expenses-table td {
+    padding: 0.5rem;
+  }
+
+  .expenses-table th:nth-child(n+6),
+  .expenses-table td:nth-child(n+6) {
+    display: none;
   }
 }
 
