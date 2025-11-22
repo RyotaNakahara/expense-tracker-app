@@ -69,6 +69,20 @@ const Dashboard = () => {
   })
   const [submitting, setSubmitting] = useState<boolean>(false)
 
+  // カテゴリー作成フォームの状態
+  const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false)
+  const [categoryName, setCategoryName] = useState<string>('')
+  const [submittingCategory, setSubmittingCategory] = useState<boolean>(false)
+
+  // タグ作成フォームの状態
+  const [showTagForm, setShowTagForm] = useState<boolean>(false)
+  const [tagName, setTagName] = useState<string>('')
+  const [selectedCategoryForTag, setSelectedCategoryForTag] = useState<string>('')
+  const [submittingTag, setSubmittingTag] = useState<boolean>(false)
+
+  // カテゴリー・タグ管理セクションの表示状態
+  const [showCategoryTagSection, setShowCategoryTagSection] = useState<boolean>(false)
+
   // ログアウトボタン押下時にサインアウトし、ログイン画面へ戻す
   const handleSignOut = async () => {
     try {
@@ -118,27 +132,19 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        console.log('Fetching categories from Firestore...')
         const categoriesRef = collection(db, 'categories')
         const querySnapshot = await getDocs(categoriesRef)
-        
-        console.log('Categories query snapshot size:', querySnapshot.size)
         
         const categoriesData: Category[] = []
         querySnapshot.forEach((doc) => {
           const data = doc.data()
-          console.log('Category doc:', doc.id, data)
-          // nameフィールドがあればそれを使用、なければドキュメントIDを使用
           categoriesData.push({
             id: doc.id,
             name: data.name || doc.id,
           })
         })
         
-        // nameでソート
         categoriesData.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
-        
-        console.log('Loaded categories:', categoriesData)
         setCategories(categoriesData)
       } catch (e) {
         console.error('Failed to load categories', e)
@@ -154,17 +160,12 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        console.log('Fetching tags from Firestore...')
         const tagsRef = collection(db, 'tags')
         const querySnapshot = await getDocs(tagsRef)
-        
-        console.log('Tags query snapshot size:', querySnapshot.size)
         
         const tagsData: Tag[] = []
         querySnapshot.forEach((doc) => {
           const data = doc.data()
-          console.log('Tag doc:', doc.id, data)
-          // nameフィールドがあればそれを使用、なければドキュメントIDを使用
           tagsData.push({
             id: doc.id,
             name: data.name || doc.id,
@@ -172,10 +173,7 @@ const Dashboard = () => {
           })
         })
         
-        // nameでソート
         tagsData.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
-        
-        console.log('Loaded tags:', tagsData)
         setAllTags(tagsData)
       } catch (e) {
         console.error('Failed to load tags', e)
@@ -319,50 +317,19 @@ const Dashboard = () => {
         }
       }
 
-      // 既存のタグを確認
-      const tagsRef = collection(db, 'tags')
-      const tagsSnapshot = await getDocs(tagsRef)
-      const existingTagNames = new Set<string>()
-      tagsSnapshot.forEach((doc) => {
+      // カテゴリーデータを再読み込み
+      const updatedCategoriesSnapshot = await getDocs(categoriesRef)
+      const categoriesData: Category[] = []
+      updatedCategoriesSnapshot.forEach((doc) => {
         const data = doc.data()
-        existingTagNames.add(data.name || doc.id)
+        categoriesData.push({
+          id: doc.id,
+          name: data.name || doc.id,
+        })
       })
-
-      // タグは初期データとして追加しない（カテゴリーごとに個別に追加する必要があるため）
-
-      // データを再読み込み
-      const fetchCategories = async () => {
-        const categoriesRef = collection(db, 'categories')
-        const querySnapshot = await getDocs(categoriesRef)
-        const categoriesData: Category[] = []
-        querySnapshot.forEach((doc) => {
-          const data = doc.data()
-          categoriesData.push({
-            id: doc.id,
-            name: data.name || doc.id,
-          })
-        })
-        categoriesData.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
-        setCategories(categoriesData)
-      }
-
-      const fetchTags = async () => {
-        const tagsRef = collection(db, 'tags')
-        const querySnapshot = await getDocs(tagsRef)
-        const tagsData: Tag[] = []
-        querySnapshot.forEach((doc) => {
-          const data = doc.data()
-          tagsData.push({
-            id: doc.id,
-            name: data.name || doc.id,
-            categoryId: data.categoryId || '',
-          })
-        })
-        tagsData.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
-        setAllTags(tagsData)
-      }
-
-      await Promise.all([fetchCategories(), fetchTags()])
+      categoriesData.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+      setCategories(categoriesData)
+      
       alert('初期データを追加しました')
     } catch (error) {
       console.error('Failed to initialize data', error)
@@ -449,6 +416,127 @@ const Dashboard = () => {
     }
   }
 
+  // カテゴリー作成処理
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!categoryName.trim()) {
+      alert('カテゴリー名を入力してください')
+      return
+    }
+
+    setSubmittingCategory(true)
+    try {
+      // 既存のカテゴリー名と重複チェック
+      const existingCategory = categories.find(
+        cat => cat.name.toLowerCase() === categoryName.trim().toLowerCase()
+      )
+      
+      if (existingCategory) {
+        alert('同じ名前のカテゴリーが既に存在します')
+        setSubmittingCategory(false)
+        return
+      }
+
+      await addDoc(collection(db, 'categories'), {
+        name: categoryName.trim(),
+      })
+
+      // カテゴリーデータを再読み込み
+      const categoriesRef = collection(db, 'categories')
+      const querySnapshot = await getDocs(categoriesRef)
+      const categoriesData: Category[] = []
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        categoriesData.push({
+          id: doc.id,
+          name: data.name || doc.id,
+        })
+      })
+      categoriesData.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+      setCategories(categoriesData)
+
+      // フォームをリセット
+      setCategoryName('')
+      setShowCategoryForm(false)
+      alert('カテゴリーを追加しました')
+    } catch (error) {
+      console.error('Failed to create category', error)
+      alert('カテゴリーの作成に失敗しました')
+    } finally {
+      setSubmittingCategory(false)
+    }
+  }
+
+  // タグ作成処理
+  const handleCreateTag = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!tagName.trim()) {
+      alert('タグ名を入力してください')
+      return
+    }
+
+    if (!selectedCategoryForTag) {
+      alert('カテゴリーを選択してください')
+      return
+    }
+
+    setSubmittingTag(true)
+    try {
+      // 選択されたカテゴリーを取得
+      const selectedCategory = categories.find(cat => cat.id === selectedCategoryForTag)
+      if (!selectedCategory) {
+        alert('カテゴリーが見つかりません')
+        setSubmittingTag(false)
+        return
+      }
+
+      // 同じカテゴリー内でタグ名の重複チェック
+      const existingTag = allTags.find(
+        tag => tag.categoryId === selectedCategory.id && 
+               tag.name.toLowerCase() === tagName.trim().toLowerCase()
+      )
+      
+      if (existingTag) {
+        alert('このカテゴリーに同じ名前のタグが既に存在します')
+        setSubmittingTag(false)
+        return
+      }
+
+      await addDoc(collection(db, 'tags'), {
+        name: tagName.trim(),
+        categoryId: selectedCategory.id,
+      })
+
+      // タグデータを再読み込み
+      const tagsRef = collection(db, 'tags')
+      const querySnapshot = await getDocs(tagsRef)
+      const tagsData: Tag[] = []
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        tagsData.push({
+          id: doc.id,
+          name: data.name || doc.id,
+          categoryId: data.categoryId || '',
+        })
+      })
+      tagsData.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+      setAllTags(tagsData)
+
+      // フォームをリセット
+      setTagName('')
+      setSelectedCategoryForTag('')
+      setShowTagForm(false)
+      alert('タグを追加しました')
+    } catch (error) {
+      console.error('Failed to create tag', error)
+      alert('タグの作成に失敗しました')
+    } finally {
+      setSubmittingTag(false)
+    }
+  }
+
   return (
     <div className="dashboard-page">
       <header className="dashboard-header">
@@ -467,6 +555,158 @@ const Dashboard = () => {
         <section className="dashboard-card welcome-section">
           <h2>ようこそ</h2>
           <p>ここに家計管理の概要やウィジェットを配置できます。</p>
+        </section>
+
+        <section className="dashboard-card category-tag-section">
+          <div className="section-header">
+            <h2>カテゴリー・タグ管理</h2>
+            <button
+              className="section-toggle-button"
+              onClick={() => setShowCategoryTagSection(!showCategoryTagSection)}
+              aria-label={showCategoryTagSection ? 'セクションを閉じる' : 'セクションを開く'}
+            >
+              <span className={showCategoryTagSection ? 'icon-open' : 'icon-closed'}>▼</span>
+            </button>
+          </div>
+          
+          {showCategoryTagSection && (
+            <div className="management-forms">
+            {/* カテゴリー作成フォーム */}
+            <div className="management-form-item">
+              <div className="management-form-header">
+                <h3>カテゴリーを作成</h3>
+                <button
+                  className="toggle-form-button small"
+                  onClick={() => {
+                    setShowCategoryForm(!showCategoryForm)
+                    if (showCategoryForm) {
+                      setCategoryName('')
+                    }
+                  }}
+                >
+                  {showCategoryForm ? '閉じる' : 'カテゴリーを追加'}
+                </button>
+              </div>
+              
+              {showCategoryForm && (
+                <form className="management-form" onSubmit={handleCreateCategory}>
+                  <div className="form-group">
+                    <label htmlFor="categoryName">カテゴリー名 <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      id="categoryName"
+                      value={categoryName}
+                      onChange={(e) => setCategoryName(e.target.value)}
+                      placeholder="例: 食費"
+                      required
+                      disabled={submittingCategory}
+                    />
+                  </div>
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="cancel-button"
+                      onClick={() => {
+                        setShowCategoryForm(false)
+                        setCategoryName('')
+                      }}
+                      disabled={submittingCategory}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      type="submit"
+                      className="submit-button"
+                      disabled={submittingCategory}
+                    >
+                      {submittingCategory ? '作成中...' : '作成'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            {/* タグ作成フォーム */}
+            <div className="management-form-item">
+              <div className="management-form-header">
+                <h3>タグを作成</h3>
+                <button
+                  className="toggle-form-button small"
+                  onClick={() => {
+                    setShowTagForm(!showTagForm)
+                    if (showTagForm) {
+                      setTagName('')
+                      setSelectedCategoryForTag('')
+                    }
+                  }}
+                >
+                  {showTagForm ? '閉じる' : 'タグを追加'}
+                </button>
+              </div>
+              
+              {showTagForm && (
+                <form className="management-form" onSubmit={handleCreateTag}>
+                  <div className="form-group">
+                    <label htmlFor="tagCategory">カテゴリー <span className="required">*</span></label>
+                    {loadingCategories ? (
+                      <p>読み込み中...</p>
+                    ) : categories.length === 0 ? (
+                      <p className="tag-hint">まずカテゴリーを作成してください</p>
+                    ) : (
+                      <select
+                        id="tagCategory"
+                        value={selectedCategoryForTag}
+                        onChange={(e) => setSelectedCategoryForTag(e.target.value)}
+                        required
+                        disabled={submittingTag}
+                      >
+                        <option value="">選択してください</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="tagName">タグ名 <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      id="tagName"
+                      value={tagName}
+                      onChange={(e) => setTagName(e.target.value)}
+                      placeholder="例: 必需品"
+                      required
+                      disabled={submittingTag || !selectedCategoryForTag}
+                    />
+                  </div>
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="cancel-button"
+                      onClick={() => {
+                        setShowTagForm(false)
+                        setTagName('')
+                        setSelectedCategoryForTag('')
+                      }}
+                      disabled={submittingTag}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      type="submit"
+                      className="submit-button"
+                      disabled={submittingTag || !selectedCategoryForTag}
+                    >
+                      {submittingTag ? '作成中...' : '作成'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+            </div>
+          )}
         </section>
 
         <section className="dashboard-card expense-form-section">

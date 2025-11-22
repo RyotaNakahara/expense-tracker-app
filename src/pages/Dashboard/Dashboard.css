@@ -70,6 +70,7 @@
 }
 
 .welcome-section,
+.category-tag-section,
 .expense-form-section,
 .expenses-section {
   grid-column: 1 / -1;
@@ -397,6 +398,117 @@
   margin: 0;
 }
 
+/* カテゴリー・タグ管理セクション */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.section-toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-toggle-button:hover {
+  color: #0f172a;
+}
+
+.section-toggle-button .icon-open {
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+.section-toggle-button .icon-closed {
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+
+.management-forms {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.management-form-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: #fff;
+}
+
+.management-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.management-form-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.toggle-form-button.small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.toggle-form-button.small:hover {
+  background-color: #e2e8f0;
+}
+
+.management-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.management-form .form-group {
+  margin-bottom: 0;
+}
+
+.management-form .form-group label {
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.management-form .form-group input,
+.management-form .form-group select {
+  padding: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.management-form .form-actions {
+  margin-top: 0.25rem;
+  gap: 0.75rem;
+}
+
+.management-form .form-actions button {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .dashboard-page {
     padding: 1.5rem;
@@ -456,6 +568,16 @@
 
   .cancel-button,
   .submit-button {
+    width: 100%;
+  }
+
+  .management-form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .toggle-form-button.small {
     width: 100%;
   }
 }
