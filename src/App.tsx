@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Home from './pages/Home/Home'
 import Login from './pages/Login/Login'
 import Dashboard from './pages/Dashboard/Dashboard'
+import CategoryTagManagement from './pages/CategoryTagManagement/CategoryTagManagement'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -24,6 +25,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        {/* カテゴリー・タグ管理ページ */}
+        <Route
+          path="/category-tag-management"
+          element={
+            <ProtectedRoute>
+              <CategoryTagManagement />
             </ProtectedRoute>
           }
         />

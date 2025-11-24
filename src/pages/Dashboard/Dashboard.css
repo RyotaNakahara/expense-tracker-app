@@ -24,6 +24,22 @@
   gap: 1rem;
 }
 
+.management-link {
+  padding: 0.6rem 1.2rem;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.management-link:hover {
+  background-color: #2563eb;
+}
+
 .dashboard-user-email {
   font-weight: 600;
   color: #334155;

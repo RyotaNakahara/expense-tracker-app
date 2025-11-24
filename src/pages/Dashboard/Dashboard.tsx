@@ -1,13 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useExpenses } from '../../hooks/useExpenses'
-import { useCategories } from '../../hooks/useCategories'
-import { useTags } from '../../hooks/useTags'
 import { useUserName } from '../../hooks/useUserName'
 import { ExpenseForm } from '../../components/ExpenseForm'
-import { CategoryForm } from '../../components/CategoryForm'
-import { TagForm } from '../../components/TagForm'
 import { ExpensesTable } from '../../components/ExpensesTable'
 import './Dashboard.css'
 
@@ -17,15 +13,10 @@ const Dashboard = () => {
   const { displayName, loading: loadingName } = useUserName(user)
 
   // カスタムフックを使用してデータを取得
-  const { expenses, loading: loadingExpenses, refreshExpenses } = useExpenses(user?.uid)
-  const { categories, refreshCategories } = useCategories()
-  const { allTags, refreshTags } = useTags()
+  const { expenses, loading: loadingExpenses } = useExpenses(user?.uid)
 
   // フォームの表示状態
   const [showForm, setShowForm] = useState<boolean>(false)
-  const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false)
-  const [showTagForm, setShowTagForm] = useState<boolean>(false)
-  const [showCategoryTagSection, setShowCategoryTagSection] = useState<boolean>(false)
 
   const handleSignOut = async () => {
     try {
@@ -41,16 +32,6 @@ const Dashboard = () => {
     // refreshExpensesはuseExpensesフック内で自動的に実行されるため不要
   }
 
-  const handleCategorySuccess = () => {
-    setShowCategoryForm(false)
-    refreshCategories()
-  }
-
-  const handleTagSuccess = () => {
-    setShowTagForm(false)
-    refreshTags()
-  }
-
   return (
     <div className="dashboard-page">
       <header className="dashboard-header">
@@ -59,6 +40,9 @@ const Dashboard = () => {
           <span className="dashboard-user-email">
             {loadingName ? '読み込み中…' : displayName ?? 'ゲスト'}
           </span>
+          <Link to="/category-tag-management" className="management-link">
+            カテゴリー・タグ管理
+          </Link>
           <button className="dashboard-signout-button" onClick={handleSignOut}>
             ログアウト
           </button>
@@ -69,65 +53,6 @@ const Dashboard = () => {
         <section className="dashboard-card welcome-section">
           <h2>ようこそ</h2>
           <p>ここに家計管理の概要やウィジェットを配置できます。</p>
-        </section>
-
-        <section className="dashboard-card category-tag-section">
-          <div className="section-header">
-            <h2>カテゴリー・タグ管理</h2>
-            <button
-              className="section-toggle-button"
-              onClick={() => setShowCategoryTagSection(!showCategoryTagSection)}
-              aria-label={showCategoryTagSection ? 'セクションを閉じる' : 'セクションを開く'}
-            >
-              <span className={showCategoryTagSection ? 'icon-open' : 'icon-closed'}>▼</span>
-            </button>
-          </div>
-
-          {showCategoryTagSection && (
-            <div className="management-forms">
-              {/* カテゴリー作成フォーム */}
-              <div className="management-form-item">
-                <div className="management-form-header">
-                  <h3>カテゴリーを作成</h3>
-                  <button
-                    className="toggle-form-button small"
-                    onClick={() => {
-                      setShowCategoryForm(!showCategoryForm)
-                    }}
-                  >
-                    {showCategoryForm ? '閉じる' : 'カテゴリーを追加'}
-                  </button>
-                </div>
-
-                {showCategoryForm && (
-                  <CategoryForm categories={categories} onSuccess={handleCategorySuccess} />
-                )}
-              </div>
-
-              {/* タグ作成フォーム */}
-              <div className="management-form-item">
-                <div className="management-form-header">
-                  <h3>タグを作成</h3>
-                  <button
-                    className="toggle-form-button small"
-                    onClick={() => {
-                      setShowTagForm(!showTagForm)
-                    }}
-                  >
-                    {showTagForm ? '閉じる' : 'タグを追加'}
-                  </button>
-                </div>
-
-                {showTagForm && (
-                  <TagForm
-                    categories={categories}
-                    allTags={allTags}
-                    onSuccess={handleTagSuccess}
-                  />
-                )}
-              </div>
-            </div>
-          )}
         </section>
 
         <section className="dashboard-card expense-form-section">
