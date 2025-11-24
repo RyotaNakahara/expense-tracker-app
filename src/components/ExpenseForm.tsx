@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useCategories } from '../hooks/useCategories'
 import { useTags } from '../hooks/useTags'
-import { expenseService } from '../services/expenseService'
+import { useExpenses } from '../hooks/useExpenses'
 import { categoryService } from '../services/categoryService'
 import { DEFAULT_CATEGORIES } from '../constants/defaultCategories'
 import { PAYMENT_METHODS } from '../constants/paymentMethods'
@@ -18,6 +18,7 @@ export const ExpenseForm = ({ userId, onSuccess }: ExpenseFormProps) => {
   const [formData, setFormData] = useState(getInitialExpenseFormData())
   const [submitting, setSubmitting] = useState<boolean>(false)
   const { categories, loading: loadingCategories, refreshCategories } = useCategories()
+  const { createExpense } = useExpenses(userId)
 
   // 選択されたカテゴリーIDを取得
   const selectedCategoryId = categories.find(
@@ -51,7 +52,7 @@ export const ExpenseForm = ({ userId, onSuccess }: ExpenseFormProps) => {
 
     setSubmitting(true)
     try {
-      await expenseService.createExpense(userId, {
+      await createExpense({
         date: new Date(formData.date),
         amount: amount,
         bigCategory: formData.bigCategory,

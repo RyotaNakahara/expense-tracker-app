@@ -38,7 +38,7 @@ const Dashboard = () => {
 
   const handleExpenseSuccess = () => {
     setShowForm(false)
-    refreshExpenses()
+    // refreshExpensesはuseExpensesフック内で自動的に実行されるため不要
   }
 
   const handleCategorySuccess = () => {
