@@ -13,7 +13,7 @@ const Dashboard = () => {
   const { displayName, loading: loadingName } = useUserName(user)
 
   // カスタムフックを使用してデータを取得
-  const { expenses, loading: loadingExpenses } = useExpenses(user?.uid)
+  const { expenses, loading: loadingExpenses, refreshExpenses } = useExpenses(user?.uid)
 
   // フォームの表示状態
   const [showForm, setShowForm] = useState<boolean>(false)
@@ -27,9 +27,10 @@ const Dashboard = () => {
     }
   }
 
-  const handleExpenseSuccess = () => {
+  const handleExpenseSuccess = async () => {
     setShowForm(false)
-    // refreshExpensesはuseExpensesフック内で自動的に実行されるため不要
+    // 支出一覧を即座に更新
+    await refreshExpenses()
   }
 
   return (
