@@ -109,10 +109,15 @@
   cursor: pointer;
   text-align: left;
   transition: opacity 0.2s ease;
+  outline: none;
 }
 
 .search-section-toggle:hover {
   opacity: 0.8;
+}
+
+.search-section-toggle:focus {
+  outline: none;
 }
 
 .search-section-toggle h2 {
@@ -121,6 +126,37 @@
 
 .search-section-header .expand-icon {
   margin-bottom: 0;
+}
+
+.search-conditions-summary {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.condition-badge {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  background-color: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.condition-badge.empty {
+  color: #94a3b8;
+  font-style: italic;
 }
 
 .clear-filters-button {
@@ -173,19 +209,22 @@
 .date-selectors {
   display: flex;
   gap: 1.5rem;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .date-selector-group {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
 }
 
 .date-selector-group label {
   font-weight: 600;
   color: #475569;
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .date-select {

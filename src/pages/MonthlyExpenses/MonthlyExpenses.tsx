@@ -201,6 +201,36 @@ const MonthlyExpenses = () => {
             </button>
           </div>
 
+          {!isSearchExpanded && (
+            <div className="search-conditions-summary">
+              <div className="conditions-list">
+                {selectedYear && selectedMonth && (
+                  <span className="condition-badge">
+                    {selectedYear}年{selectedMonth}月
+                  </span>
+                )}
+                {selectedCategories.length > 0 && (
+                  <span className="condition-badge">
+                    カテゴリー: {selectedCategories.join(', ')}
+                  </span>
+                )}
+                {selectedTags.length > 0 && (
+                  <span className="condition-badge">
+                    タグ: {selectedTags.join(', ')}
+                  </span>
+                )}
+                {selectedPaymentMethods.length > 0 && (
+                  <span className="condition-badge">
+                    支払い方法: {selectedPaymentMethods.join(', ')}
+                  </span>
+                )}
+                {!selectedYear && !selectedMonth && selectedCategories.length === 0 && selectedTags.length === 0 && selectedPaymentMethods.length === 0 && (
+                  <span className="condition-badge empty">条件なし</span>
+                )}
+              </div>
+            </div>
+          )}
+
           {isSearchExpanded && (
             <>
               {/* 期間選択 */}
