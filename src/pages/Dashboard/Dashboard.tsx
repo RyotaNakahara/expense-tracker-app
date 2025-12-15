@@ -70,7 +70,12 @@ const Dashboard = () => {
 
       <main className="dashboard-content">
         <section className="dashboard-card monthly-summary-section">
-          <h2>今月の支出</h2>
+          <div className="monthly-summary-header">
+            <h2>今月の支出</h2>
+            <Link to="/monthly-expenses" className="monthly-search-link">
+              支出を検索 →
+            </Link>
+          </div>
           <div className="monthly-total">
             {loadingExpenses ? (
               <p className="loading-text">読み込み中...</p>

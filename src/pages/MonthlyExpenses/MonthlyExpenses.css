@@ -1,0 +1,380 @@
+.monthly-expenses-page {
+  min-height: 100vh;
+  background-color: #f1f5f9;
+  padding: 2.5rem;
+  box-sizing: border-box;
+}
+
+.monthly-expenses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.monthly-expenses-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.back-button {
+  padding: 0.6rem 1.2rem;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.back-button:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.monthly-expenses-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.monthly-expenses-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.monthly-expenses-user-name {
+  font-weight: 600;
+  color: #334155;
+}
+
+.monthly-expenses-signout-button {
+  padding: 0.6rem 1.2rem;
+  background-color: #ef4444;
+  border: none;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.monthly-expenses-signout-button:hover {
+  background-color: #dc2626;
+}
+
+.monthly-expenses-content {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.monthly-expenses-card {
+  background-color: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.monthly-expenses-card h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #0f172a;
+}
+
+/* 検索セクション */
+.search-section {
+  grid-column: 1 / -1;
+}
+
+.search-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.search-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.2s ease;
+  outline: none;
+}
+
+.search-section-toggle:hover {
+  opacity: 0.8;
+}
+
+.search-section-toggle:focus {
+  outline: none;
+}
+
+.search-section-toggle h2 {
+  margin: 0;
+}
+
+.search-section-header .expand-icon {
+  margin-bottom: 0;
+}
+
+.search-conditions-summary {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.condition-badge {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  background-color: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.condition-badge.empty {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.clear-filters-button {
+  padding: 0.5rem 1rem;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-filters-button:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.search-filter-group {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.search-filter-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.search-filter-group h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.expand-icon {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #64748b;
+  line-height: 1;
+  margin-bottom: 1rem;
+  min-width: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.date-selectors {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.date-selector-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.date-selector-group label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.date-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: #fff;
+  color: #0f172a;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.date-select:hover {
+  border-color: #cbd5e1;
+}
+
+.date-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.date-select:disabled {
+  background-color: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* チェックボックスグループ */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.checkbox-label:hover {
+  background-color: #f8fafc;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.checkbox-label span {
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.empty-message {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 0;
+  font-style: italic;
+}
+
+/* 合計金額セクション */
+.summary-section {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.summary-section h2 {
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.monthly-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.monthly-summary-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.monthly-summary-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.loading-text {
+  color: #fff;
+  opacity: 0.9;
+}
+
+/* 支出詳細セクション */
+.expenses-section {
+  grid-column: 1 / -1;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .monthly-expenses-page {
+    padding: 1.5rem;
+  }
+
+  .monthly-expenses-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .monthly-expenses-header-left {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .monthly-expenses-user-info {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .date-selectors {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .date-selector-group {
+    width: 100%;
+  }
+
+  .date-select {
+    width: 100%;
+  }
+
+  .monthly-summary-amount {
+    font-size: 2rem;
+  }
+}
+
