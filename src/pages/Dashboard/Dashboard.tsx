@@ -72,9 +72,14 @@ const Dashboard = () => {
         <section className="dashboard-card monthly-summary-section">
           <div className="monthly-summary-header">
             <h2>今月の支出</h2>
-            <Link to="/monthly-expenses" className="monthly-search-link">
-              支出を検索 →
-            </Link>
+            <div className="monthly-summary-links">
+              <Link to="/monthly-summary" className="monthly-summary-link">
+                月毎のサマリー →
+              </Link>
+              <Link to="/monthly-expenses" className="monthly-search-link">
+                支出を検索 →
+              </Link>
+            </div>
           </div>
           <div className="monthly-total">
             {loadingExpenses ? (
