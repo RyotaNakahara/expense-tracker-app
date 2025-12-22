@@ -61,7 +61,15 @@ export const expenseService = {
   // 支出を更新
   async updateExpense(expenseId: string, input: UpdateExpenseInput): Promise<void> {
     const expenseRef = doc(db, 'expenses', expenseId)
-    const updateData: any = {
+    const updateData: {
+      updatedAt: Timestamp
+      date?: Timestamp
+      amount?: number
+      bigCategory?: string
+      tags?: string
+      paymentMethod?: string
+      description?: string
+    } = {
       updatedAt: Timestamp.now(),
     }
 

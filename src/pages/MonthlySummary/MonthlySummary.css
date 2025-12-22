@@ -1,0 +1,496 @@
+.monthly-summary-page {
+  min-height: 100vh;
+  background-color: #f1f5f9;
+  padding: 2.5rem;
+  box-sizing: border-box;
+}
+
+.monthly-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.monthly-summary-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.back-button {
+  padding: 0.6rem 1.2rem;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  outline: none;
+}
+
+.back-button:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.back-button:focus {
+  outline: none;
+}
+
+.monthly-summary-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.monthly-summary-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.monthly-summary-user-name {
+  font-weight: 600;
+  color: #334155;
+}
+
+.management-link {
+  padding: 0.6rem 1.2rem;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.management-link:hover {
+  background-color: #2563eb;
+}
+
+.monthly-summary-signout-button {
+  padding: 0.6rem 1.2rem;
+  background-color: #ef4444;
+  border: none;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.monthly-summary-signout-button:hover {
+  background-color: #dc2626;
+}
+
+.monthly-summary-content {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.monthly-summary-card {
+  background-color: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.monthly-summary-card h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #0f172a;
+}
+
+/* 全体サマリーセクション */
+.total-summary-section {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.total-summary-section h2 {
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.total-summary-stats {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+}
+
+.total-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.total-amount-value {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.total-amount-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.total-count {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 3rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.total-count-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.total-count-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.loading-text {
+  color: #fff;
+  opacity: 0.9;
+}
+
+/* 月別支出推移グラフセクション */
+.line-chart-section {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+}
+
+.line-chart-section h2 {
+  margin-bottom: 1rem;
+}
+
+.line-chart-container {
+  margin-top: 0;
+  width: 100%;
+  height: 300px;
+}
+
+/* 月毎の一覧セクション */
+.monthly-list-section {
+  grid-column: 1 / -1;
+}
+
+.monthly-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.monthly-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.monthly-item:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+
+.monthly-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease;
+  outline: none;
+}
+
+.monthly-item-header:hover {
+  background-color: #f8fafc;
+}
+
+.monthly-item-header:focus {
+  outline: none;
+}
+
+.monthly-item-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  gap: 2rem;
+}
+
+.monthly-item-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.monthly-item-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.monthly-item-amount {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.monthly-item-count {
+  font-size: 0.9rem;
+  color: #64748b;
+  padding: 0.25rem 0.75rem;
+  background-color: #f1f5f9;
+  border-radius: 0.25rem;
+}
+
+.expand-icon {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #64748b;
+  line-height: 1;
+  min-width: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.monthly-item-details {
+  padding: 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.category-breakdown {
+  margin-bottom: 1rem;
+}
+
+.category-breakdown h4 {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* 円グラフのスタイル */
+.chart-container {
+  width: 100%;
+  margin: 1rem 0;
+  padding: 1rem 0;
+}
+
+.chart-tooltip {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  pointer-events: none;
+  z-index: 1000;
+  min-width: 180px;
+  white-space: nowrap;
+}
+
+.chart-tooltip-label {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.chart-tooltip-value {
+  margin: 0;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.legend-color {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  flex: 1;
+  font-weight: 500;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.legend-value {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.monthly-item-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.view-details-link {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background-color: #3b82f6;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.view-details-link:hover {
+  background-color: #2563eb;
+}
+
+.empty-message {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 0;
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .monthly-summary-page {
+    padding: 1.5rem;
+  }
+
+  .monthly-summary-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .monthly-summary-header-left {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .monthly-summary-user-info {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .total-summary-content {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .total-count {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    padding-top: 2rem;
+    width: 100%;
+  }
+
+  .total-amount-value {
+    font-size: 2.5rem;
+  }
+
+  .total-count-value {
+    font-size: 2rem;
+  }
+
+  .monthly-item-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .monthly-item-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .total-summary-stats {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .total-count {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    padding-top: 2rem;
+    width: 100%;
+  }
+
+  .line-chart-container {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .line-chart-title {
+    font-size: 1rem;
+  }
+
+  .chart-container {
+    margin: 0.75rem 0;
+  }
+
+  .chart-legend {
+    gap: 0.5rem;
+  }
+
+  .legend-item {
+    padding: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .legend-label,
+  .legend-value {
+    font-size: 0.85rem;
+  }
+}
+

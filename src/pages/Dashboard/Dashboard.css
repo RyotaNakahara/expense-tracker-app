@@ -88,8 +88,75 @@
 .welcome-section,
 .category-tag-section,
 .expense-form-section,
-.expenses-section {
+.expenses-section,
+.monthly-summary-section {
   grid-column: 1 / -1;
+}
+
+.monthly-summary-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.monthly-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.monthly-summary-section h2 {
+  color: #fff;
+  margin: 0;
+}
+
+.monthly-summary-links {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.monthly-summary-link,
+.monthly-search-link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.monthly-summary-link:hover,
+.monthly-search-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.monthly-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.monthly-total-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.monthly-total-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.loading-text {
+  color: #fff;
+  opacity: 0.9;
 }
 
 .expenses-table-container {
