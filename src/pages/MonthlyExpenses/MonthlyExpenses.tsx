@@ -36,9 +36,25 @@ const MonthlyExpenses = () => {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(
     urlMonth ? Number(urlMonth) : currentMonth
   )
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [selectedTag, setSelectedTag] = useState<string>('')
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([])
+
+  // 選択されたカテゴリーに基づいてタグをフィルタリング
+  const filteredTags = useMemo(() => {
+    if (!selectedCategory) {
+      return []
+    }
+    // 選択されたカテゴリー名からカテゴリーIDを取得
+    const selectedCategoryData = categories.find((category) => category.name === selectedCategory)
+    
+    if (!selectedCategoryData) {
+      return []
+    }
+    
+    // 選択されたカテゴリーIDに一致するタグのみを返す
+    return allTags.filter((tag) => tag.categoryId === selectedCategoryData.id)
+  }, [selectedCategory, categories, allTags])
 
   // 検索セクションの折りたたみ状態（URLパラメータがある場合は折りたたむ）
   const [isSearchExpanded, setIsSearchExpanded] = useState<boolean>(!urlYear && !urlMonth)
@@ -73,19 +89,16 @@ const MonthlyExpenses = () => {
       }
 
       // カテゴリーのフィルタリング（選択されている場合）
-      if (selectedCategories.length > 0) {
-        if (!selectedCategories.includes(expense.bigCategory)) {
+      if (selectedCategory) {
+        if (expense.bigCategory !== selectedCategory) {
           return false
         }
       }
 
       // タグのフィルタリング（選択されている場合）
-      if (selectedTags.length > 0) {
+      if (selectedTag) {
         const expenseTags = expense.tags.split(', ').filter((tag) => tag.trim() !== '')
-        const hasSelectedTag = selectedTags.some((selectedTag) =>
-          expenseTags.includes(selectedTag)
-        )
-        if (!hasSelectedTag) {
+        if (!expenseTags.includes(selectedTag)) {
           return false
         }
       }
@@ -103,8 +116,8 @@ const MonthlyExpenses = () => {
     expenses,
     selectedYear,
     selectedMonth,
-    selectedCategories,
-    selectedTags,
+    selectedCategory,
+    selectedTag,
     selectedPaymentMethods,
   ])
 
@@ -141,21 +154,16 @@ const MonthlyExpenses = () => {
     { value: 12, label: '12月' },
   ]
 
-  // チェックボックスのハンドラー
-  const handleCategoryToggle = (categoryName: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryName)
-        ? prev.filter((name) => name !== categoryName)
-        : [...prev, categoryName]
-    )
+  // カテゴリー選択のハンドラー
+  const handleCategoryChange = (categoryName: string) => {
+    setSelectedCategory(categoryName)
+    // カテゴリーが変更された場合、タグの選択をクリア
+    setSelectedTag('')
   }
 
-  const handleTagToggle = (tagName: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagName)
-        ? prev.filter((name) => name !== tagName)
-        : [...prev, tagName]
-    )
+  // タグ選択のハンドラー
+  const handleTagChange = (tagName: string) => {
+    setSelectedTag(tagName)
   }
 
   const handlePaymentMethodToggle = (paymentMethod: string) => {
@@ -170,8 +178,8 @@ const MonthlyExpenses = () => {
   const handleClearFilters = () => {
     setSelectedYear(null)
     setSelectedMonth(null)
-    setSelectedCategories([])
-    setSelectedTags([])
+    setSelectedCategory('')
+    setSelectedTag('')
     setSelectedPaymentMethods([])
   }
 
@@ -232,14 +240,14 @@ const MonthlyExpenses = () => {
                     {selectedYear}年{selectedMonth}月
                   </span>
                 )}
-                {selectedCategories.length > 0 && (
+                {selectedCategory && (
                   <span className="condition-badge">
-                    カテゴリー: {selectedCategories.join(', ')}
+                    カテゴリー: {selectedCategory}
                   </span>
                 )}
-                {selectedTags.length > 0 && (
+                {selectedTag && (
                   <span className="condition-badge">
-                    タグ: {selectedTags.join(', ')}
+                    タグ: {selectedTag}
                   </span>
                 )}
                 {selectedPaymentMethods.length > 0 && (
@@ -247,7 +255,7 @@ const MonthlyExpenses = () => {
                     支払い方法: {selectedPaymentMethods.join(', ')}
                   </span>
                 )}
-                {!selectedYear && !selectedMonth && selectedCategories.length === 0 && selectedTags.length === 0 && selectedPaymentMethods.length === 0 && (
+                {!selectedYear && !selectedMonth && !selectedCategory && !selectedTag && selectedPaymentMethods.length === 0 && (
                   <span className="condition-badge empty">条件なし</span>
                 )}
               </div>
@@ -301,50 +309,74 @@ const MonthlyExpenses = () => {
                 </div>
               </div>
 
-              {/* カテゴリー選択 */}
+              {/* カテゴリー・タグ選択 */}
               <div className="search-filter-group">
-                <h3>カテゴリー</h3>
-                {loadingCategories ? (
-                  <p>読み込み中...</p>
-                ) : categories.length === 0 ? (
-                  <p className="empty-message">カテゴリーが登録されていません</p>
-                ) : (
-                  <div className="checkbox-group">
-                    {categories.map((category) => (
-                      <label key={category.id} className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category.name)}
-                          onChange={() => handleCategoryToggle(category.name)}
-                        />
-                        <span>{category.name}</span>
-                      </label>
-                    ))}
+                <h3>カテゴリー・タグ</h3>
+                <div className="category-tag-selectors">
+                  <div className="category-tag-selector-group">
+                    <label htmlFor="category-select">カテゴリー</label>
+                    {loadingCategories ? (
+                      <p>読み込み中...</p>
+                    ) : categories.length === 0 ? (
+                      <p className="empty-message">カテゴリーが登録されていません</p>
+                    ) : (
+                      <select
+                        id="category-select"
+                        value={selectedCategory}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
+                        className="category-select"
+                      >
+                        <option value="">すべて</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.name}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* タグ選択 */}
-              <div className="search-filter-group">
-                <h3>タグ</h3>
-                {loadingTags ? (
-                  <p>読み込み中...</p>
-                ) : allTags.length === 0 ? (
-                  <p className="empty-message">タグが登録されていません</p>
-                ) : (
-                  <div className="checkbox-group">
-                    {allTags.map((tag) => (
-                      <label key={tag.id} className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={selectedTags.includes(tag.name)}
-                          onChange={() => handleTagToggle(tag.name)}
-                        />
-                        <span>{tag.name}</span>
-                      </label>
-                    ))}
+                  <div className="category-tag-selector-group">
+                    <label htmlFor="tag-select">タグ</label>
+                    {loadingTags ? (
+                      <p>読み込み中...</p>
+                    ) : !selectedCategory ? (
+                      <select
+                        id="tag-select"
+                        value={selectedTag}
+                        onChange={(e) => handleTagChange(e.target.value)}
+                        className="tag-select"
+                        disabled
+                      >
+                        <option value="">カテゴリーを選択してください</option>
+                      </select>
+                    ) : filteredTags.length === 0 ? (
+                      <select
+                        id="tag-select"
+                        value={selectedTag}
+                        onChange={(e) => handleTagChange(e.target.value)}
+                        className="tag-select"
+                        disabled
+                      >
+                        <option value="">タグが登録されていません</option>
+                      </select>
+                    ) : (
+                      <select
+                        id="tag-select"
+                        value={selectedTag}
+                        onChange={(e) => handleTagChange(e.target.value)}
+                        className="tag-select"
+                      >
+                        <option value="">すべて</option>
+                        {filteredTags.map((tag) => (
+                          <option key={tag.id} value={tag.name}>
+                            {tag.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
 
               {/* 支払い方法選択 */}

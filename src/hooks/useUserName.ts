@@ -36,6 +36,7 @@ export const useUserName = (user: User | null) => {
     }
 
     fetchUserName()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid])
 
   return { displayName, loading }
