@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useMemo, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useExpenses } from '../../hooks/useExpenses'
 import { useCategories } from '../../hooks/useCategories'
@@ -12,6 +12,7 @@ import './MonthlyExpenses.css'
 const MonthlyExpenses = () => {
   const { user, signOutUser } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { displayName, loading: loadingName } = useUserName(user)
 
   // カスタムフックを使用してデータを取得
@@ -24,15 +25,37 @@ const MonthlyExpenses = () => {
   const currentYear = now.getFullYear()
   const currentMonth = now.getMonth() + 1 // getMonth()は0-11を返すため+1
 
-  // 検索条件の状態
-  const [selectedYear, setSelectedYear] = useState<number | null>(currentYear)
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(currentMonth)
+  // URLクエリパラメータから年月を取得
+  const urlYear = searchParams.get('year')
+  const urlMonth = searchParams.get('month')
+
+  // 検索条件の状態（URLパラメータがあればそれを使用、なければ現在の年月）
+  const [selectedYear, setSelectedYear] = useState<number | null>(
+    urlYear ? Number(urlYear) : currentYear
+  )
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(
+    urlMonth ? Number(urlMonth) : currentMonth
+  )
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([])
 
-  // 検索セクションの折りたたみ状態
-  const [isSearchExpanded, setIsSearchExpanded] = useState<boolean>(true)
+  // 検索セクションの折りたたみ状態（URLパラメータがある場合は折りたたむ）
+  const [isSearchExpanded, setIsSearchExpanded] = useState<boolean>(!urlYear && !urlMonth)
+
+  // URLパラメータが変更されたときに状態を更新
+  useEffect(() => {
+    if (urlYear) {
+      setSelectedYear(Number(urlYear))
+    }
+    if (urlMonth) {
+      setSelectedMonth(Number(urlMonth))
+    }
+    // URLパラメータがある場合は検索セクションを折りたたむ
+    if (urlYear || urlMonth) {
+      setIsSearchExpanded(false)
+    }
+  }, [urlYear, urlMonth])
 
   // 選択した条件で支出をフィルタリング
   const filteredExpenses = useMemo(() => {

@@ -4,6 +4,7 @@ import Login from './pages/Login/Login'
 import Dashboard from './pages/Dashboard/Dashboard'
 import CategoryTagManagement from './pages/CategoryTagManagement/CategoryTagManagement'
 import MonthlyExpenses from './pages/MonthlyExpenses/MonthlyExpenses'
+import MonthlySummary from './pages/MonthlySummary/MonthlySummary'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -44,6 +45,15 @@ function App() {
           element={
             <ProtectedRoute>
               <MonthlyExpenses />
+            </ProtectedRoute>
+          }
+        />
+        {/* 月毎のサマリーページ */}
+        <Route
+          path="/monthly-summary"
+          element={
+            <ProtectedRoute>
+              <MonthlySummary />
             </ProtectedRoute>
           }
         />
