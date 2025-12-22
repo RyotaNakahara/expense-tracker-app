@@ -134,8 +134,25 @@ const MonthlySummary = () => {
   }
 
   // カスタムツールチップ
-  const CustomTooltip = ({ active, payload, coordinate }: any) => {
-    if (active && payload && payload.length && coordinate) {
+  interface TooltipProps {
+    active?: boolean
+    payload?: Array<{
+      name: string
+      value: number
+      payload: {
+        name: string
+        value: number
+        percentage: string
+      }
+    }>
+    coordinate?: {
+      x: number
+      y: number
+    }
+  }
+
+  const CustomTooltip = ({ active, payload, coordinate }: TooltipProps) => {
+    if (active && payload && payload.length > 0 && coordinate) {
       // グラフの中心上部に表示（グラフの高さは350px、マージン20px、円の中心は50%）
       const chartCenterX = coordinate.x
       const chartTop = 20 // マージン分
@@ -161,22 +178,44 @@ const MonthlySummary = () => {
   }
 
   // カスタム凡例
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderCustomLegend = (props: any) => {
     const { payload } = props
+    if (!payload || payload.length === 0) return null
+    
     return (
       <div className="chart-legend">
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="legend-item">
-            <span
-              className="legend-color"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="legend-label">{entry.value}</span>
-            <span className="legend-value">
-              ¥{entry.payload.value.toLocaleString()} ({entry.payload.percentage}%)
-            </span>
-          </div>
-        ))}
+        {payload.map((entry: {
+          value?: string
+          color?: string
+          payload?: {
+            name: string
+            value: number
+            percentage: string
+          }
+        }, index: number) => {
+          if (!entry || !entry.value) return null
+          const customPayload = entry.payload as {
+            name: string
+            value: number
+            percentage: string
+          } | undefined
+          
+          return (
+            <div key={index} className="legend-item">
+              <span
+                className="legend-color"
+                style={{ backgroundColor: entry.color || '#ccc' }}
+              />
+              <span className="legend-label">{entry.value}</span>
+              {customPayload && (
+                <span className="legend-value">
+                  ¥{customPayload.value.toLocaleString()} ({customPayload.percentage}%)
+                </span>
+              )}
+            </div>
+          )
+        })}
       </div>
     )
   }
