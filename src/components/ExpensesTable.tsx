@@ -5,9 +5,10 @@ import './ExpensesTable.css'
 interface ExpensesTableProps {
   expenses: Expense[]
   loading: boolean
+  onExpenseClick: (expense: Expense) => void
 }
 
-export const ExpensesTable = ({ expenses, loading }: ExpensesTableProps) => {
+export const ExpensesTable = ({ expenses, loading, onExpenseClick }: ExpensesTableProps) => {
   if (loading) {
     return <p>読み込み中…</p>
   }
@@ -33,7 +34,7 @@ export const ExpensesTable = ({ expenses, loading }: ExpensesTableProps) => {
         </thead>
         <tbody>
           {expenses.map((expense) => (
-            <tr key={expense.id}>
+            <tr key={expense.id} onClick={() => onExpenseClick(expense)} className="expense-row">
               <td className="col-date">{formatDate(expense.date)}</td>
               <td className="col-amount expense-amount">¥{expense.amount.toLocaleString()}</td>
               <td className="col-category">{expense.bigCategory}</td>

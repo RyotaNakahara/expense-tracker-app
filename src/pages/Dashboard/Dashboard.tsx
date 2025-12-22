@@ -5,6 +5,8 @@ import { useExpenses } from '../../hooks/useExpenses'
 import { useUserName } from '../../hooks/useUserName'
 import { ExpenseForm } from '../../components/ExpenseForm'
 import { ExpensesTable } from '../../components/ExpensesTable'
+import { ExpenseModal } from '../../components/ExpenseModal'
+import type { Expense } from '../../types'
 import './Dashboard.css'
 
 const Dashboard = () => {
@@ -17,6 +19,9 @@ const Dashboard = () => {
 
   // フォームの表示状態
   const [showForm, setShowForm] = useState<boolean>(false)
+
+  // モーダルの状態
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
 
   // 今月の合計金額を計算
   const monthlyTotal = useMemo(() => {
@@ -48,6 +53,22 @@ const Dashboard = () => {
   const handleExpenseSuccess = async () => {
     setShowForm(false)
     // 支出一覧を即座に更新
+    await refreshExpenses()
+  }
+
+  const handleExpenseClick = (expense: Expense) => {
+    setSelectedExpense(expense)
+  }
+
+  const handleModalClose = () => {
+    setSelectedExpense(null)
+  }
+
+  const handleExpenseUpdate = async () => {
+    await refreshExpenses()
+  }
+
+  const handleExpenseDelete = async () => {
     await refreshExpenses()
   }
 
@@ -115,9 +136,23 @@ const Dashboard = () => {
 
         <section className="dashboard-card expenses-section">
           <h2>支出一覧</h2>
-          <ExpensesTable expenses={expenses} loading={loadingExpenses} />
+          <ExpensesTable
+            expenses={expenses}
+            loading={loadingExpenses}
+            onExpenseClick={handleExpenseClick}
+          />
         </section>
       </main>
+
+      {selectedExpense && user?.uid && (
+        <ExpenseModal
+          expense={selectedExpense}
+          userId={user.uid}
+          onClose={handleModalClose}
+          onUpdate={handleExpenseUpdate}
+          onDelete={handleExpenseDelete}
+        />
+      )}
     </div>
   )
 }

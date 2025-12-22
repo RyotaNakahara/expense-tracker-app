@@ -421,7 +421,11 @@ const MonthlyExpenses = () => {
         {/* 支出詳細セクション */}
         <section className="monthly-expenses-card expenses-section">
           <h2>支出詳細</h2>
-          <ExpensesTable expenses={filteredExpenses} loading={loadingExpenses} />
+          <ExpensesTable
+            expenses={filteredExpenses}
+            loading={loadingExpenses}
+            onExpenseClick={() => {}}
+          />
         </section>
       </main>
     </div>
