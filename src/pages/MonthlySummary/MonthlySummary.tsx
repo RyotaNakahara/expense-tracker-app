@@ -371,7 +371,7 @@ const MonthlySummary = () => {
                   <YAxis
                     stroke="#64748b"
                     style={{ fontSize: '0.75rem' }}
-                    tickFormatter={(value) => {
+                    tickFormatter={(value: number) => {
                       if (value >= 10000) {
                         return `¥${(value / 10000).toFixed(0)}万`
                       }
