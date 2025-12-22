@@ -5,6 +5,8 @@ import { useExpenses } from '../../hooks/useExpenses'
 import { useUserName } from '../../hooks/useUserName'
 import { ExpenseForm } from '../../components/ExpenseForm'
 import { ExpensesTable } from '../../components/ExpensesTable'
+import { ExpenseModal } from '../../components/ExpenseModal'
+import type { Expense } from '../../types'
 import './Dashboard.css'
 
 const Dashboard = () => {
@@ -13,10 +15,13 @@ const Dashboard = () => {
   const { displayName, loading: loadingName } = useUserName(user)
 
   // カスタムフックを使用してデータを取得
-  const { expenses, loading: loadingExpenses } = useExpenses(user?.uid)
+  const { expenses, loading: loadingExpenses, refreshExpenses } = useExpenses(user?.uid)
 
   // フォームの表示状態
   const [showForm, setShowForm] = useState<boolean>(false)
+
+  // モーダルの状態
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
 
   const handleSignOut = async () => {
     try {
@@ -30,6 +35,22 @@ const Dashboard = () => {
   const handleExpenseSuccess = () => {
     setShowForm(false)
     // refreshExpensesはuseExpensesフック内で自動的に実行されるため不要
+  }
+
+  const handleExpenseClick = (expense: Expense) => {
+    setSelectedExpense(expense)
+  }
+
+  const handleModalClose = () => {
+    setSelectedExpense(null)
+  }
+
+  const handleExpenseUpdate = () => {
+    refreshExpenses()
+  }
+
+  const handleExpenseDelete = () => {
+    refreshExpenses()
   }
 
   return (
@@ -73,9 +94,23 @@ const Dashboard = () => {
 
         <section className="dashboard-card expenses-section">
           <h2>支出一覧</h2>
-          <ExpensesTable expenses={expenses} loading={loadingExpenses} />
+          <ExpensesTable
+            expenses={expenses}
+            loading={loadingExpenses}
+            onExpenseClick={handleExpenseClick}
+          />
         </section>
       </main>
+
+      {selectedExpense && user?.uid && (
+        <ExpenseModal
+          expense={selectedExpense}
+          userId={user.uid}
+          onClose={handleModalClose}
+          onUpdate={handleExpenseUpdate}
+          onDelete={handleExpenseDelete}
+        />
+      )}
     </div>
   )
 }

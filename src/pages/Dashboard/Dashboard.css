@@ -181,6 +181,15 @@
   background-color: #f8fafc;
 }
 
+.expense-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.expense-row:hover {
+  background-color: #f1f5f9;
+}
+
 .expense-amount {
   font-weight: 600;
   color: #0f172a;
