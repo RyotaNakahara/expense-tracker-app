@@ -120,7 +120,7 @@
   margin-bottom: 1.5rem;
 }
 
-.total-summary-content {
+.total-summary-stats {
   display: flex;
   gap: 3rem;
   align-items: center;
@@ -167,6 +167,24 @@
 .loading-text {
   color: #fff;
   opacity: 0.9;
+}
+
+/* 月別支出推移グラフセクション */
+.line-chart-section {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+}
+
+.line-chart-section h2 {
+  margin-bottom: 1rem;
+}
+
+.line-chart-container {
+  margin-top: 0;
+  width: 100%;
+  height: 300px;
 }
 
 /* 月毎の一覧セクション */
@@ -432,6 +450,29 @@
   .monthly-item-stats {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .total-summary-stats {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .total-count {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    padding-top: 2rem;
+    width: 100%;
+  }
+
+  .line-chart-container {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .line-chart-title {
+    font-size: 1rem;
   }
 
   .chart-container {

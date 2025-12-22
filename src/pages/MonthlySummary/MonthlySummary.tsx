@@ -1,6 +1,18 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts'
 import { useAuth } from '../../context/AuthContext'
 import { useExpenses } from '../../hooks/useExpenses'
 import { useUserName } from '../../hooks/useUserName'
@@ -61,6 +73,21 @@ const MonthlySummary = () => {
   // 全期間の合計
   const grandTotal = useMemo(() => {
     return monthlyData.reduce((sum, data) => sum + data.total, 0)
+  }, [monthlyData])
+
+  // 折れ線グラフ用のデータ（時系列順にソート）
+  const lineChartData = useMemo(() => {
+    return [...monthlyData]
+      .sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year
+        return a.month - b.month
+      })
+      .map((data) => ({
+        month: `${data.year}/${String(data.month).padStart(2, '0')}`,
+        amount: data.total,
+        year: data.year,
+        monthNum: data.month,
+      }))
   }, [monthlyData])
 
   // 選択された月の詳細データ
@@ -185,22 +212,20 @@ const MonthlySummary = () => {
         {/* 全体サマリー */}
         <section className="monthly-summary-card total-summary-section">
           <h2>全体サマリー</h2>
-          <div className="total-summary-content">
-            {loadingExpenses ? (
-              <p className="loading-text">読み込み中...</p>
-            ) : (
-              <>
-                <div className="total-amount">
-                  <span className="total-amount-value">¥{grandTotal.toLocaleString()}</span>
-                  <p className="total-amount-label">全期間の合計金額</p>
-                </div>
-                <div className="total-count">
-                  <span className="total-count-value">{monthlyData.length}</span>
-                  <p className="total-count-label">月数</p>
-                </div>
-              </>
-            )}
-          </div>
+          {loadingExpenses ? (
+            <p className="loading-text">読み込み中...</p>
+          ) : (
+            <div className="total-summary-stats">
+              <div className="total-amount">
+                <span className="total-amount-value">¥{grandTotal.toLocaleString()}</span>
+                <p className="total-amount-label">全期間の合計金額</p>
+              </div>
+              <div className="total-count">
+                <span className="total-count-value">{monthlyData.length}</span>
+                <p className="total-count-label">月数</p>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* 月毎の一覧 */}
@@ -253,7 +278,7 @@ const MonthlySummary = () => {
                                     dataKey="value"
                                   >
                                     {prepareChartData(data.categoryBreakdown, data.total).map(
-                                      (entry, index) => (
+                                      (_entry, index) => (
                                         <Cell
                                           key={`cell-${index}`}
                                           fill={COLORS[index % COLORS.length]}
@@ -287,6 +312,60 @@ const MonthlySummary = () => {
             </div>
           )}
         </section>
+
+        {/* 月別支出推移グラフ */}
+        {!loadingExpenses && lineChartData.length > 0 && (
+          <section className="monthly-summary-card line-chart-section">
+            <h2>月別支出推移</h2>
+            <div className="line-chart-container">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={lineChartData} margin={{ top: 5, right: 20, bottom: 60, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="month"
+                    stroke="#64748b"
+                    style={{ fontSize: '0.75rem' }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis
+                    stroke="#64748b"
+                    style={{ fontSize: '0.75rem' }}
+                    tickFormatter={(value) => {
+                      if (value >= 10000) {
+                        return `¥${(value / 10000).toFixed(0)}万`
+                      }
+                      return `¥${value.toLocaleString()}`
+                    }}
+                    width={60}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      color: '#0f172a',
+                    }}
+                    formatter={(value: number | undefined) => {
+                      if (value === undefined) return ['', '支出']
+                      return [`¥${value.toLocaleString()}`, '支出']
+                    }}
+                    labelStyle={{ color: '#0f172a', fontWeight: 600 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#667eea"
+                    strokeWidth={2}
+                    dot={{ fill: '#667eea', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   )
