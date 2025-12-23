@@ -43,6 +43,16 @@
 .dashboard-user-email {
   font-weight: 600;
   color: #334155;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.dashboard-user-email:hover {
+  color: #3b82f6;
+  background-color: #f1f5f9;
 }
 
 .dashboard-signout-button {
