@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard/Dashboard'
 import CategoryTagManagement from './pages/CategoryTagManagement/CategoryTagManagement'
 import MonthlyExpenses from './pages/MonthlyExpenses/MonthlyExpenses'
 import MonthlySummary from './pages/MonthlySummary/MonthlySummary'
+import Profile from './pages/Profile/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -54,6 +55,15 @@ function App() {
           element={
             <ProtectedRoute>
               <MonthlySummary />
+            </ProtectedRoute>
+          }
+        />
+        {/* プロフィールページ */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

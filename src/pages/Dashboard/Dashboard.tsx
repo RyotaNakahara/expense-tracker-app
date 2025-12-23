@@ -77,9 +77,9 @@ const Dashboard = () => {
       <header className="dashboard-header">
         <h1>ダッシュボード</h1>
         <div className="dashboard-user-info">
-          <span className="dashboard-user-email">
+          <Link to="/profile" className="dashboard-user-email">
             {loadingName ? '読み込み中…' : displayName ?? 'ゲスト'}
-          </span>
+          </Link>
           <Link to="/category-tag-management" className="management-link">
             カテゴリー・タグ管理
           </Link>
