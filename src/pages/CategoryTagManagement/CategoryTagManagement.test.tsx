@@ -62,18 +62,13 @@ describe('CategoryTagManagement', () => {
       loading: false,
       error: null,
       refreshCategories: vi.fn(),
-      createCategory: vi.fn(),
-      updateCategory: vi.fn(),
-      deleteCategory: vi.fn(),
     })
     vi.mocked(useTags).mockReturnValue({
       allTags: [],
+      filteredTags: [],
       loading: false,
       error: null,
       refreshTags: vi.fn(),
-      createTag: vi.fn(),
-      updateTag: vi.fn(),
-      deleteTag: vi.fn(),
     })
 
     render(<CategoryTagManagement />)
@@ -99,18 +94,13 @@ describe('CategoryTagManagement', () => {
       loading: false,
       error: null,
       refreshCategories: vi.fn(),
-      createCategory: vi.fn(),
-      updateCategory: vi.fn(),
-      deleteCategory: vi.fn(),
     })
     vi.mocked(useTags).mockReturnValue({
       allTags: [],
+      filteredTags: [],
       loading: false,
       error: null,
       refreshTags: vi.fn(),
-      createTag: vi.fn(),
-      updateTag: vi.fn(),
-      deleteTag: vi.fn(),
     })
 
     render(<CategoryTagManagement />)
@@ -140,18 +130,13 @@ describe('CategoryTagManagement', () => {
       loading: false,
       error: null,
       refreshCategories: vi.fn(),
-      createCategory: vi.fn(),
-      updateCategory: vi.fn(),
-      deleteCategory: vi.fn(),
     })
     vi.mocked(useTags).mockReturnValue({
       allTags: [],
+      filteredTags: [],
       loading: false,
       error: null,
       refreshTags: vi.fn(),
-      createTag: vi.fn(),
-      updateTag: vi.fn(),
-      deleteTag: vi.fn(),
     })
 
     render(<CategoryTagManagement />)

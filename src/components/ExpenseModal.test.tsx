@@ -54,6 +54,7 @@ describe('ExpenseModal', () => {
       refreshCategories: vi.fn(),
     })
     vi.mocked(useTags).mockReturnValue({
+      allTags: mockTags,
       filteredTags: mockTags,
       loading: false,
       error: null,

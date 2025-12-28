@@ -75,7 +75,7 @@ describe('ProtectedRoute', () => {
       signOutUser: vi.fn(),
     })
 
-    const { container } = render(
+    render(
       <ProtectedRoute>
         <div>Protected Content</div>
       </ProtectedRoute>

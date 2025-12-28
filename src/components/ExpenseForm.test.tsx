@@ -39,6 +39,7 @@ describe('ExpenseForm', () => {
       refreshCategories: mockRefreshCategories,
     })
     vi.mocked(useTags).mockReturnValue({
+      allTags: [],
       filteredTags: [],
       loading: false,
       error: null,
@@ -77,6 +78,7 @@ describe('ExpenseForm', () => {
     const userEvent = (await import('@testing-library/user-event')).default.setup()
 
     vi.mocked(useTags).mockReturnValue({
+      allTags: mockTags,
       filteredTags: mockTags,
       loading: false,
       error: null,
