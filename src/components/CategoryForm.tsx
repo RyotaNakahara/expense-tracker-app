@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { categoryService } from '../services/categoryService'
 import type { Category } from '../types'
 import './CategoryForm.css'
@@ -6,11 +6,21 @@ import './CategoryForm.css'
 interface CategoryFormProps {
   categories: Category[]
   onSuccess: () => void
+  editingCategory?: Category | null
+  onCancel?: () => void
 }
 
-export const CategoryForm = ({ categories, onSuccess }: CategoryFormProps) => {
+export const CategoryForm = ({ categories, onSuccess, editingCategory, onCancel }: CategoryFormProps) => {
   const [categoryName, setCategoryName] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (editingCategory) {
+      setCategoryName(editingCategory.name)
+    } else {
+      setCategoryName('')
+    }
+  }, [editingCategory])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,7 +33,9 @@ export const CategoryForm = ({ categories, onSuccess }: CategoryFormProps) => {
     setSubmitting(true)
     try {
       const existingCategory = categories.find(
-        (cat) => cat.name.toLowerCase() === categoryName.trim().toLowerCase()
+        (cat) => 
+          cat.id !== editingCategory?.id &&
+          cat.name.toLowerCase() === categoryName.trim().toLowerCase()
       )
 
       if (existingCategory) {
@@ -32,13 +44,21 @@ export const CategoryForm = ({ categories, onSuccess }: CategoryFormProps) => {
         return
       }
 
-      await categoryService.createCategory({ name: categoryName.trim() })
-      setCategoryName('')
+      if (editingCategory) {
+        // 編集モード
+        await categoryService.updateCategory(editingCategory.id, { name: categoryName.trim() })
+        alert('カテゴリーを更新しました')
+      } else {
+        // 作成モード
+        await categoryService.createCategory({ name: categoryName.trim() })
+        setCategoryName('')
+        alert('カテゴリーを追加しました')
+      }
+      
       onSuccess()
-      alert('カテゴリーを追加しました')
     } catch (error) {
-      console.error('Failed to create category', error)
-      alert('カテゴリーの作成に失敗しました')
+      console.error('Failed to save category', error)
+      alert(editingCategory ? 'カテゴリーの更新に失敗しました' : 'カテゴリーの作成に失敗しました')
     } finally {
       setSubmitting(false)
     }
@@ -59,16 +79,29 @@ export const CategoryForm = ({ categories, onSuccess }: CategoryFormProps) => {
         />
       </div>
       <div className="form-actions">
-        <button
-          type="button"
-          className="cancel-button"
-          onClick={() => setCategoryName('')}
-          disabled={submitting}
-        >
-          キャンセル
-        </button>
+        {editingCategory && onCancel ? (
+          <button
+            type="button"
+            className="cancel-button"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            キャンセル
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="cancel-button"
+            onClick={() => setCategoryName('')}
+            disabled={submitting}
+          >
+            キャンセル
+          </button>
+        )}
         <button type="submit" className="submit-button" disabled={submitting}>
-          {submitting ? '作成中...' : '作成'}
+          {submitting 
+            ? (editingCategory ? '更新中...' : '作成中...') 
+            : (editingCategory ? '更新' : '作成')}
         </button>
       </div>
     </form>

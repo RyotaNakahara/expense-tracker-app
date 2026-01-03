@@ -1,11 +1,33 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { useAuth } from '../../context/AuthContext'
 import { useCategories } from '../../hooks/useCategories'
 import { useTags } from '../../hooks/useTags'
 import { useUserName } from '../../hooks/useUserName'
 import { CategoryForm } from '../../components/CategoryForm'
 import { TagForm } from '../../components/TagForm'
+import { CategoryModal } from '../../components/CategoryModal'
+import { TagModal } from '../../components/TagModal'
+import { SortableCategoryItem } from '../../components/SortableCategoryItem'
+import { SortableTagItem } from '../../components/SortableTagItem'
+import { categoryService } from '../../services/categoryService'
+import { tagService } from '../../services/tagService'
+import type { Category, Tag } from '../../types'
 import './CategoryTagManagement.css'
 
 const CategoryTagManagement = () => {
@@ -18,6 +40,15 @@ const CategoryTagManagement = () => {
 
   const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false)
   const [showTagForm, setShowTagForm] = useState<boolean>(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [editingTag, setEditingTag] = useState<Tag | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   const handleSignOut = async () => {
     try {
@@ -30,12 +61,111 @@ const CategoryTagManagement = () => {
 
   const handleCategorySuccess = () => {
     setShowCategoryForm(false)
+    setEditingCategory(null)
     refreshCategories()
   }
 
   const handleTagSuccess = () => {
     setShowTagForm(false)
+    setEditingTag(null)
     refreshTags()
+  }
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category)
+  }
+
+  const handleCloseCategoryModal = () => {
+    setEditingCategory(null)
+  }
+
+  const handleCategoryModalSuccess = () => {
+    refreshCategories()
+    refreshTags()
+  }
+
+  const handleCategoryModalDelete = () => {
+    // タグの削除はモーダル内で処理されるため、ここではリフレッシュのみ
+    refreshTags()
+  }
+
+  const handleEditTag = (tag: Tag) => {
+    setEditingTag(tag)
+  }
+
+  const handleCloseTagModal = () => {
+    setEditingTag(null)
+  }
+
+  const handleTagModalSuccess = () => {
+    refreshTags()
+  }
+
+  const handleTagModalDelete = () => {
+    // タグ削除はモーダル内で処理されるため、ここでは何もしない
+  }
+
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    const oldIndex = categories.findIndex((cat) => cat.id === active.id)
+    const newIndex = categories.findIndex((cat) => cat.id === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return
+    }
+
+    const newCategories = arrayMove(categories, oldIndex, newIndex)
+
+    // 順序を更新
+    const updates = newCategories.map((cat, index) => ({
+      id: cat.id,
+      order: index,
+    }))
+
+    try {
+      await categoryService.updateCategoriesOrder(updates)
+      refreshCategories()
+    } catch (error) {
+      console.error('Failed to update category order', error)
+      alert('順序の更新に失敗しました')
+    }
+  }
+
+  const handleTagDragEnd = async (event: DragEndEvent, categoryId: string) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    const categoryTags = allTags.filter((tag) => tag.categoryId === categoryId)
+    const oldIndex = categoryTags.findIndex((tag) => tag.id === active.id)
+    const newIndex = categoryTags.findIndex((tag) => tag.id === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return
+    }
+
+    const newTags = arrayMove(categoryTags, oldIndex, newIndex)
+
+    // 順序を更新
+    const updates = newTags.map((tag, index) => ({
+      id: tag.id,
+      order: index,
+    }))
+
+    try {
+      await tagService.updateTagsOrder(updates)
+      refreshTags()
+    } catch (error) {
+      console.error('Failed to update tag order', error)
+      alert('順序の更新に失敗しました')
+    }
   }
 
   return (
@@ -69,6 +199,9 @@ const CategoryTagManagement = () => {
             <button
               className="toggle-form-button"
               onClick={() => {
+                if (editingCategory) {
+                  setEditingCategory(null)
+                }
                 setShowCategoryForm(!showCategoryForm)
               }}
             >
@@ -77,7 +210,10 @@ const CategoryTagManagement = () => {
           </div>
 
           {showCategoryForm && (
-            <CategoryForm categories={categories} onSuccess={handleCategorySuccess} />
+            <CategoryForm 
+              categories={categories} 
+              onSuccess={handleCategorySuccess}
+            />
           )}
 
           <div className="items-list">
@@ -85,15 +221,39 @@ const CategoryTagManagement = () => {
             {categories.length === 0 ? (
               <p className="empty-message">カテゴリーが登録されていません</p>
             ) : (
-              <ul className="items-list-items">
-                {categories.map((category) => (
-                  <li key={category.id} className="item-item">
-                    {category.name}
-                  </li>
-                ))}
-              </ul>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleCategoryDragEnd}
+              >
+                <SortableContext
+                  items={categories.map((cat) => cat.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul className="items-list-items">
+                    {categories.map((category) => (
+                      <SortableCategoryItem
+                        key={category.id}
+                        category={category}
+                        onEdit={handleEditCategory}
+                      />
+                    ))}
+                  </ul>
+                </SortableContext>
+              </DndContext>
             )}
           </div>
+
+          {editingCategory && (
+            <CategoryModal
+              category={editingCategory}
+              categories={categories}
+              allTags={allTags}
+              onClose={handleCloseCategoryModal}
+              onSuccess={handleCategoryModalSuccess}
+              onDelete={handleCategoryModalDelete}
+            />
+          )}
         </section>
 
         {/* タグ作成セクション */}
@@ -103,6 +263,9 @@ const CategoryTagManagement = () => {
             <button
               className="toggle-form-button"
               onClick={() => {
+                if (editingTag) {
+                  setEditingTag(null)
+                }
                 setShowTagForm(!showTagForm)
               }}
             >
@@ -111,7 +274,11 @@ const CategoryTagManagement = () => {
           </div>
 
           {showTagForm && (
-            <TagForm categories={categories} allTags={allTags} onSuccess={handleTagSuccess} />
+            <TagForm 
+              categories={categories} 
+              allTags={allTags} 
+              onSuccess={handleTagSuccess}
+            />
           )}
 
           <div className="items-list">
@@ -127,19 +294,43 @@ const CategoryTagManagement = () => {
                   return (
                     <div key={category.id} className="category-tags-group">
                       <h4 className="category-tags-title">{category.name}</h4>
-                      <ul className="items-list-items">
-                        {categoryTags.map((tag) => (
-                          <li key={tag.id} className="item-item">
-                            {tag.name}
-                          </li>
-                        ))}
-                      </ul>
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleTagDragEnd(event, category.id)}
+                      >
+                        <SortableContext
+                          items={categoryTags.map((tag) => tag.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <ul className="items-list-items">
+                            {categoryTags.map((tag) => (
+                              <SortableTagItem
+                                key={tag.id}
+                                tag={tag}
+                                onEdit={handleEditTag}
+                              />
+                            ))}
+                          </ul>
+                        </SortableContext>
+                      </DndContext>
                     </div>
                   )
                 })}
               </div>
             )}
           </div>
+
+          {editingTag && (
+            <TagModal
+              tag={editingTag}
+              categories={categories}
+              allTags={allTags}
+              onClose={handleCloseTagModal}
+              onSuccess={handleTagModalSuccess}
+              onDelete={handleTagModalDelete}
+            />
+          )}
         </section>
       </main>
     </div>
