@@ -1,0 +1,25 @@
+.drag-handle {
+  cursor: grab;
+  color: #64748b;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.drag-handle:hover {
+  color: #3b82f6;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.item-item.dragging {
+  background-color: #e0e7ff;
+  border-color: #3b82f6;
+}
+

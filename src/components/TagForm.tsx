@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { tagService } from '../services/tagService'
 import type { Category, Tag } from '../types'
 import './TagForm.css'
@@ -7,12 +7,24 @@ interface TagFormProps {
   categories: Category[]
   allTags: Tag[]
   onSuccess: () => void
+  editingTag?: Tag | null
+  onCancel?: () => void
 }
 
-export const TagForm = ({ categories, allTags, onSuccess }: TagFormProps) => {
+export const TagForm = ({ categories, allTags, onSuccess, editingTag, onCancel }: TagFormProps) => {
   const [tagName, setTagName] = useState<string>('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (editingTag) {
+      setTagName(editingTag.name)
+      setSelectedCategoryId(editingTag.categoryId)
+    } else {
+      setTagName('')
+      setSelectedCategoryId('')
+    }
+  }, [editingTag])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,6 +50,7 @@ export const TagForm = ({ categories, allTags, onSuccess }: TagFormProps) => {
 
       const existingTag = allTags.find(
         (tag) =>
+          tag.id !== editingTag?.id &&
           tag.categoryId === selectedCategory.id &&
           tag.name.toLowerCase() === tagName.trim().toLowerCase()
       )
@@ -48,15 +61,25 @@ export const TagForm = ({ categories, allTags, onSuccess }: TagFormProps) => {
         return
       }
 
-      await tagService.createTag({
-        name: tagName.trim(),
-        categoryId: selectedCategory.id,
-      })
+      if (editingTag) {
+        // 編集モード
+        await tagService.updateTag(editingTag.id, {
+          name: tagName.trim(),
+          categoryId: selectedCategory.id,
+        })
+        alert('タグを更新しました')
+      } else {
+        // 作成モード
+        await tagService.createTag({
+          name: tagName.trim(),
+          categoryId: selectedCategory.id,
+        })
+        setTagName('')
+        setSelectedCategoryId('')
+        alert('タグを追加しました')
+      }
 
-      setTagName('')
-      setSelectedCategoryId('')
       onSuccess()
-      alert('タグを追加しました')
     } catch (error) {
       console.error('Failed to create tag', error)
       alert('タグの作成に失敗しました')
@@ -77,7 +100,7 @@ export const TagForm = ({ categories, allTags, onSuccess }: TagFormProps) => {
             value={selectedCategoryId}
             onChange={(e) => setSelectedCategoryId(e.target.value)}
             required
-            disabled={submitting}
+            disabled={submitting || !!editingTag}
           >
             <option value="">選択してください</option>
             {categories.map((category) => (
@@ -101,23 +124,36 @@ export const TagForm = ({ categories, allTags, onSuccess }: TagFormProps) => {
         />
       </div>
       <div className="form-actions">
-        <button
-          type="button"
-          className="cancel-button"
-          onClick={() => {
-            setTagName('')
-            setSelectedCategoryId('')
-          }}
-          disabled={submitting}
-        >
-          キャンセル
-        </button>
+        {editingTag && onCancel ? (
+          <button
+            type="button"
+            className="cancel-button"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            キャンセル
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="cancel-button"
+            onClick={() => {
+              setTagName('')
+              setSelectedCategoryId('')
+            }}
+            disabled={submitting}
+          >
+            キャンセル
+          </button>
+        )}
         <button
           type="submit"
           className="submit-button"
           disabled={submitting || !selectedCategoryId}
         >
-          {submitting ? '作成中...' : '作成'}
+          {submitting 
+            ? (editingTag ? '更新中...' : '作成中...') 
+            : (editingTag ? '更新' : '作成')}
         </button>
       </div>
     </form>

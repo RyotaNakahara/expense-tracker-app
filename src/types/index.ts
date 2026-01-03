@@ -38,6 +38,7 @@ export interface UpdateExpenseInput {
 export interface Category {
   id: string
   name: string
+  order?: number
 }
 
 // カテゴリー作成用の入力型
@@ -50,6 +51,7 @@ export interface Tag {
   id: string
   name: string
   categoryId: string
+  order?: number
 }
 
 // タグ作成用の入力型

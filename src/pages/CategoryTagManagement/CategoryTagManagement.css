@@ -149,6 +149,32 @@
   border-radius: 0.5rem;
   color: #475569;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.item-name {
+  flex: 1;
+}
+
+.item-name.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  margin: -0.25rem -0.5rem;
+}
+
+.item-name.clickable:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.item-name.clickable:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 .tags-grouped-by-category {

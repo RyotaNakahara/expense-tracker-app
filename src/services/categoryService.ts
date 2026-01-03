@@ -14,11 +14,19 @@ export const categoryService = {
       categories.push({
         id: doc.id,
         name: data.name || doc.id,
+        order: data.order ?? undefined,
       })
     })
 
-    // 名前でソート（日本語順）
-    categories.sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+    // 順序でソート（orderがない場合は最後、同じorderの場合は名前でソート）
+    categories.sort((a, b) => {
+      const orderA = a.order ?? Infinity
+      const orderB = b.order ?? Infinity
+      if (orderA !== orderB) {
+        return orderA - orderB
+      }
+      return a.name.localeCompare(b.name, 'ja')
+    })
 
     return categories
   },
@@ -44,6 +52,22 @@ export const categoryService = {
   async deleteCategory(categoryId: string): Promise<void> {
     const categoryRef = doc(db, 'categories', categoryId)
     await deleteDoc(categoryRef)
+  },
+
+  // カテゴリーの順序を更新
+  async updateCategoryOrder(categoryId: string, order: number): Promise<void> {
+    const categoryRef = doc(db, 'categories', categoryId)
+    await updateDoc(categoryRef, {
+      order,
+    })
+  },
+
+  // 複数のカテゴリーの順序を一括更新
+  async updateCategoriesOrder(updates: { id: string; order: number }[]): Promise<void> {
+    const updatePromises = updates.map(({ id, order }) =>
+      updateDoc(doc(db, 'categories', id), { order })
+    )
+    await Promise.all(updatePromises)
   },
 }
 
