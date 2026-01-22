@@ -5,7 +5,6 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Legend,
   Tooltip,
   LineChart,
   Line,
@@ -177,48 +176,6 @@ const MonthlySummary = () => {
     return null
   }
 
-  // カスタム凡例
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderCustomLegend = (props: any) => {
-    const { payload } = props
-    if (!payload || payload.length === 0) return null
-    
-    return (
-      <div className="chart-legend">
-        {payload.map((entry: {
-          value?: string
-          color?: string
-          payload?: {
-            name: string
-            value: number
-            percentage: string
-          }
-        }, index: number) => {
-          if (!entry || !entry.value) return null
-          const customPayload = entry.payload as {
-            name: string
-            value: number
-            percentage: string
-          } | undefined
-          
-          return (
-            <div key={index} className="legend-item">
-              <span
-                className="legend-color"
-                style={{ backgroundColor: entry.color || '#ccc' }}
-              />
-              <span className="legend-label">{entry.value}</span>
-              {customPayload && (
-                <span className="legend-value">
-                  ¥{customPayload.value.toLocaleString()} ({customPayload.percentage}%)
-                </span>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
 
 
   return (
@@ -305,33 +262,50 @@ const MonthlySummary = () => {
                             <p className="empty-message">カテゴリー別のデータがありません</p>
                           ) : (
                             <div className="chart-container">
-                              <ResponsiveContainer width="100%" height={350}>
-                                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                                  <Pie
-                                    data={prepareChartData(data.categoryBreakdown, data.total)}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    outerRadius={90}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                  >
-                                    {prepareChartData(data.categoryBreakdown, data.total).map(
-                                      (_entry, index) => (
-                                        <Cell
-                                          key={`cell-${index}`}
-                                          fill={COLORS[index % COLORS.length]}
-                                        />
-                                      )
-                                    )}
-                                  </Pie>
-                                  <Tooltip
-                                    content={<CustomTooltip />}
-                                    cursor={{ fill: 'transparent' }}
-                                  />
-                                  <Legend content={renderCustomLegend} />
-                                </PieChart>
-                              </ResponsiveContainer>
+                              <div className="chart-wrapper">
+                                <ResponsiveContainer width="100%" height={350}>
+                                  <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                    <Pie
+                                      data={prepareChartData(data.categoryBreakdown, data.total)}
+                                      cx="50%"
+                                      cy="50%"
+                                      labelLine={false}
+                                      outerRadius={90}
+                                      fill="#8884d8"
+                                      dataKey="value"
+                                    >
+                                      {prepareChartData(data.categoryBreakdown, data.total).map(
+                                        (_entry, index) => (
+                                          <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                          />
+                                        )
+                                      )}
+                                    </Pie>
+                                    <Tooltip
+                                      content={<CustomTooltip />}
+                                      cursor={{ fill: 'transparent' }}
+                                    />
+                                  </PieChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="chart-legend">
+                                {prepareChartData(data.categoryBreakdown, data.total).map(
+                                  (entry, index) => (
+                                    <div key={index} className="legend-item">
+                                      <span
+                                        className="legend-color"
+                                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                                      />
+                                      <span className="legend-label">{entry.name}</span>
+                                      <span className="legend-value">
+                                        ¥{entry.value.toLocaleString()} ({entry.percentage}%)
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
