@@ -1,45 +1,63 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { useExpenses } from '../../hooks/useExpenses'
+import {
+  useDashboardExpenses,
+  getCurrentYearMonth,
+  type DashboardYearMonth,
+} from '../../hooks/useDashboardExpenses'
 import { useUserName } from '../../hooks/useUserName'
 import { ExpenseForm } from '../../components/ExpenseForm'
 import { ExpensesTable } from '../../components/ExpensesTable'
 import { ExpenseModal } from '../../components/ExpenseModal'
+import { Pagination } from '../../components/Pagination'
 import type { Expense } from '../../types'
 import './Dashboard.css'
+
+function isSameCalendarMonth(a: DashboardYearMonth, b: DashboardYearMonth): boolean {
+  return a.year === b.year && a.month === b.month
+}
 
 const Dashboard = () => {
   const { user, signOutUser } = useAuth()
   const navigate = useNavigate()
   const { displayName, loading: loadingName } = useUserName(user)
 
-  // カスタムフックを使用してデータを取得
-  const { expenses, loading: loadingExpenses, refreshExpenses } = useExpenses(user?.uid)
+  const {
+    expenses,
+    loading: loadingExpenses,
+    monthlyTotal,
+    monthlyLoading,
+    currentPage: expenseListPage,
+    totalPages: expenseListTotalPages,
+    goToPage,
+    refreshAfterMutation,
+    error: dashboardListError,
+    monthExpenseCount,
+    selectedYearMonth,
+    setSelectedYearMonth,
+  } = useDashboardExpenses(user?.uid)
 
-  // フォームの表示状態
+  const isViewingCurrentMonth = isSameCalendarMonth(selectedYearMonth, getCurrentYearMonth())
+
+  const yearOptions = useMemo(() => {
+    const cy = new Date().getFullYear()
+    const y = selectedYearMonth.year
+    const from = Math.min(y, cy - 10)
+    const to = Math.max(y, cy + 1)
+    return Array.from({ length: to - from + 1 }, (_, i) => from + i)
+  }, [selectedYearMonth.year])
+
+  const monthHeading = isViewingCurrentMonth
+    ? '今月の支出'
+    : `${selectedYearMonth.year}年${selectedYearMonth.month}月の支出`
+
+  const expenseListHeading = isViewingCurrentMonth
+    ? '今月の支出一覧'
+    : `${selectedYearMonth.year}年${selectedYearMonth.month}月の支出一覧`
+
   const [showForm, setShowForm] = useState<boolean>(false)
-
-  // モーダルの状態
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
-
-  // 今月の合計金額を計算
-  const monthlyTotal = useMemo(() => {
-    const now = new Date()
-    const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth()
-
-    return expenses
-      .filter((expense) => {
-        if (!expense.date) return false
-        const expenseDate = expense.date.toDate()
-        return (
-          expenseDate.getFullYear() === currentYear &&
-          expenseDate.getMonth() === currentMonth
-        )
-      })
-      .reduce((sum, expense) => sum + (expense.amount || 0), 0)
-  }, [expenses])
 
   const handleSignOut = async () => {
     try {
@@ -52,8 +70,7 @@ const Dashboard = () => {
 
   const handleExpenseSuccess = async () => {
     setShowForm(false)
-    // 支出一覧を即座に更新
-    await refreshExpenses()
+    await refreshAfterMutation()
   }
 
   const handleExpenseClick = (expense: Expense) => {
@@ -65,12 +82,15 @@ const Dashboard = () => {
   }
 
   const handleExpenseUpdate = async () => {
-    await refreshExpenses()
+    await refreshAfterMutation()
   }
 
   const handleExpenseDelete = async () => {
-    await refreshExpenses()
+    await refreshAfterMutation()
   }
+
+  const listBusy = loadingExpenses
+  const summaryBusy = monthlyLoading
 
   return (
     <div className="dashboard-page">
@@ -92,7 +112,7 @@ const Dashboard = () => {
       <main className="dashboard-content">
         <section className="dashboard-card monthly-summary-section">
           <div className="monthly-summary-header">
-            <h2>今月の支出</h2>
+            <h2>{monthHeading}</h2>
             <div className="monthly-summary-links">
               <Link to="/monthly-summary" className="monthly-summary-link">
                 月毎のサマリー →
@@ -103,7 +123,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="monthly-total">
-            {loadingExpenses ? (
+            {summaryBusy ? (
               <p className="loading-text">読み込み中...</p>
             ) : (
               <>
@@ -111,7 +131,9 @@ const Dashboard = () => {
                   ¥{monthlyTotal.toLocaleString()}
                 </span>
                 <p className="monthly-total-label">
-                  {new Date().getMonth() + 1}月の合計金額
+                  {isViewingCurrentMonth
+                    ? `${selectedYearMonth.month}月の合計金額`
+                    : `${selectedYearMonth.year}年${selectedYearMonth.month}月の合計金額`}
                 </p>
               </>
             )}
@@ -122,6 +144,7 @@ const Dashboard = () => {
           <div className="expense-form-header">
             <h2>支出を登録</h2>
             <button
+              type="button"
               className="toggle-form-button"
               onClick={() => setShowForm(!showForm)}
             >
@@ -135,11 +158,71 @@ const Dashboard = () => {
         </section>
 
         <section className="dashboard-card expenses-section">
-          <h2>支出一覧</h2>
+          <div className="expenses-section-header">
+            <div className="expenses-section-heading-row">
+              <h2>{expenseListHeading}</h2>
+              <div className="expenses-section-controls">
+                <div
+                  className="dashboard-year-month-picker"
+                  role="group"
+                  aria-label="表示する年月"
+                >
+                  <label htmlFor="dashboard-year-select" className="dashboard-year-month-label">
+                    年
+                  </label>
+                  <select
+                    id="dashboard-year-select"
+                    className="dashboard-year-month-select"
+                    value={selectedYearMonth.year}
+                    onChange={(e) =>
+                      setSelectedYearMonth(Number(e.target.value), selectedYearMonth.month)
+                    }
+                  >
+                    {yearOptions.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                  <label htmlFor="dashboard-month-select" className="dashboard-year-month-label">
+                    月
+                  </label>
+                  <select
+                    id="dashboard-month-select"
+                    className="dashboard-year-month-select"
+                    value={selectedYearMonth.month}
+                    onChange={(e) =>
+                      setSelectedYearMonth(selectedYearMonth.year, Number(e.target.value))
+                    }
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <span className="dashboard-expense-count" aria-live="polite">
+                  {listBusy ? '読み込み中…' : `${monthExpenseCount}件`}
+                </span>
+              </div>
+            </div>
+          </div>
+          {dashboardListError && (
+            <p className="dashboard-list-error" role="alert">
+              支出一覧の取得に失敗しました。Firestore の複合インデックス（expenses: userId +
+              date）が作成されているか確認してください。
+            </p>
+          )}
           <ExpensesTable
             expenses={expenses}
-            loading={loadingExpenses}
+            loading={listBusy}
             onExpenseClick={handleExpenseClick}
+          />
+          <Pagination
+            currentPage={expenseListPage}
+            totalPages={expenseListTotalPages}
+            onPageChange={(p) => void goToPage(p)}
           />
         </section>
       </main>

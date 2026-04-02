@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useCategories } from '../hooks/useCategories'
 import { useTags } from '../hooks/useTags'
-import { useExpenses } from '../hooks/useExpenses'
+import { useExpenseMutations } from '../hooks/useExpenseMutations'
 import { PAYMENT_METHODS } from '../constants/paymentMethods'
 import type { Expense, Category, UpdateExpenseInput } from '../types'
 import './ExpenseModal.css'
@@ -24,7 +24,7 @@ export const ExpenseModal = ({
   const [formData, setFormData] = useState<UpdateExpenseInput>({})
   const [submitting, setSubmitting] = useState<boolean>(false)
   const { categories, loading: loadingCategories } = useCategories()
-  const { updateExpense, deleteExpense } = useExpenses(userId)
+  const { updateExpense, deleteExpense } = useExpenseMutations(userId)
 
   // 選択されたカテゴリーIDを取得
   const selectedCategoryId = categories.find(
@@ -68,8 +68,7 @@ export const ExpenseModal = ({
     if (
       !formData.date ||
       formData.amount === undefined ||
-      !formData.bigCategory ||
-      !formData.paymentMethod
+      !formData.bigCategory
     ) {
       alert('必須項目を入力してください')
       return
@@ -88,7 +87,7 @@ export const ExpenseModal = ({
         amount: amount,
         bigCategory: formData.bigCategory,
         tags: formData.tags,
-        paymentMethod: formData.paymentMethod,
+        paymentMethod: formData.paymentMethod ?? '',
         description: formData.description,
       })
 
@@ -206,16 +205,15 @@ export const ExpenseModal = ({
             </div>
 
             <div className="form-group">
-              <label htmlFor="modal-payment">支払い方法 <span className="required">*</span></label>
+              <label htmlFor="modal-payment">支払い方法（任意）</label>
               <select
                 id="modal-payment"
                 value={formData.paymentMethod || ''}
                 onChange={(e) =>
                   setFormData({ ...formData, paymentMethod: e.target.value })
                 }
-                required
               >
-                <option value="">選択してください</option>
+                <option value="">未選択</option>
                 {PAYMENT_METHODS.map((method) => (
                   <option key={method} value={method}>
                     {method}

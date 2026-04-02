@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { expenseService } from '../services/expenseService'
+import { useExpenseMutations } from './useExpenseMutations'
 import type { Expense, CreateExpenseInput, UpdateExpenseInput } from '../types'
 
 export const useExpenses = (userId: string | undefined) => {
+  const { createExpense: createExpenseDoc, updateExpense: updateExpenseDoc, deleteExpense: deleteExpenseDoc } =
+    useExpenseMutations(userId)
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
@@ -52,7 +55,7 @@ export const useExpenses = (userId: string | undefined) => {
     }
 
     try {
-      const expenseId = await expenseService.createExpense(userId, input)
+      const expenseId = await createExpenseDoc(input)
       await refreshExpenses()
       return expenseId
     } catch (e) {
@@ -65,7 +68,7 @@ export const useExpenses = (userId: string | undefined) => {
   // 支出を更新
   const updateExpense = async (expenseId: string, input: UpdateExpenseInput): Promise<void> => {
     try {
-      await expenseService.updateExpense(expenseId, input)
+      await updateExpenseDoc(expenseId, input)
       await refreshExpenses()
     } catch (e) {
       console.error('Failed to update expense', e)
@@ -77,7 +80,7 @@ export const useExpenses = (userId: string | undefined) => {
   // 支出を削除
   const deleteExpense = async (expenseId: string): Promise<void> => {
     try {
-      await expenseService.deleteExpense(expenseId)
+      await deleteExpenseDoc(expenseId)
       await refreshExpenses()
     } catch (e) {
       console.error('Failed to delete expense', e)

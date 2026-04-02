@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useCategories } from '../hooks/useCategories'
 import { useTags } from '../hooks/useTags'
-import { useExpenses } from '../hooks/useExpenses'
+import { useExpenseMutations } from '../hooks/useExpenseMutations'
 import { categoryService } from '../services/categoryService'
 import { DEFAULT_CATEGORIES } from '../constants/defaultCategories'
 import { PAYMENT_METHODS } from '../constants/paymentMethods'
@@ -18,7 +18,7 @@ export const ExpenseForm = ({ userId, onSuccess }: ExpenseFormProps) => {
   const [formData, setFormData] = useState(getInitialExpenseFormData())
   const [submitting, setSubmitting] = useState<boolean>(false)
   const { categories, loading: loadingCategories, refreshCategories } = useCategories()
-  const { createExpense } = useExpenses(userId)
+  const { createExpense } = useExpenseMutations(userId)
 
   // 選択されたカテゴリーIDを取得
   const selectedCategoryId = categories.find(
@@ -39,7 +39,7 @@ export const ExpenseForm = ({ userId, onSuccess }: ExpenseFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.date || !formData.amount || !formData.bigCategory || !formData.paymentMethod) {
+    if (!formData.date || !formData.amount || !formData.bigCategory) {
       alert('必須項目を入力してください')
       return
     }
@@ -57,7 +57,7 @@ export const ExpenseForm = ({ userId, onSuccess }: ExpenseFormProps) => {
         amount: amount,
         bigCategory: formData.bigCategory,
         tags: formData.tags,
-        paymentMethod: formData.paymentMethod,
+        paymentMethod: formData.paymentMethod || undefined,
         description: formData.description,
       })
 
@@ -158,14 +158,13 @@ export const ExpenseForm = ({ userId, onSuccess }: ExpenseFormProps) => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="paymentMethod">支払い方法 <span className="required">*</span></label>
+          <label htmlFor="paymentMethod">支払い方法</label>
           <select
             id="paymentMethod"
             value={formData.paymentMethod}
             onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-            required
           >
-            <option value="">選択してください</option>
+            <option value="">未選択</option>
             {PAYMENT_METHODS.map((method) => (
               <option key={method} value={method}>
                 {method}

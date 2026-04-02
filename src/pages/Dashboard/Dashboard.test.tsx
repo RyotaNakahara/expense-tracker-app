@@ -2,13 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '../../test/testUtils'
 import Dashboard from './Dashboard'
 import { useAuth } from '../../context/AuthContext'
-import { useExpenses } from '../../hooks/useExpenses'
+import { useDashboardExpenses } from '../../hooks/useDashboardExpenses'
 import { useUserName } from '../../hooks/useUserName'
 import type { User } from 'firebase/auth'
 
 // モック
 vi.mock('../../context/AuthContext')
-vi.mock('../../hooks/useExpenses')
+vi.mock('../../hooks/useDashboardExpenses', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('../../hooks/useDashboardExpenses')>()
+  return {
+    ...mod,
+    useDashboardExpenses: vi.fn(),
+  }
+})
 vi.mock('../../hooks/useUserName')
 vi.mock('../../components/ExpenseForm', () => ({
   ExpenseForm: () => <div data-testid="expense-form">Expense Form</div>,
@@ -47,6 +53,24 @@ const mockUser = {
   toJSON: vi.fn(),
 } as unknown as User
 
+const defaultDashboardExpensesMock = {
+  expenses: [],
+  loading: false,
+  monthlyTotal: 0,
+  monthlyLoading: false,
+  currentPage: 1,
+  totalPages: 1,
+  goToPage: vi.fn(),
+  refreshAfterMutation: vi.fn(),
+  error: null,
+  monthExpenseCount: 0,
+  get selectedYearMonth() {
+    const d = new Date()
+    return { year: d.getFullYear(), month: d.getMonth() + 1 }
+  },
+  setSelectedYearMonth: vi.fn(),
+}
+
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -62,15 +86,7 @@ describe('Dashboard', () => {
       displayName: 'Test User',
       loading: false,
     })
-    vi.mocked(useExpenses).mockReturnValue({
-      expenses: [],
-      loading: false,
-      error: null,
-      refreshExpenses: vi.fn(),
-      createExpense: vi.fn(),
-      updateExpense: vi.fn(),
-      deleteExpense: vi.fn(),
-    })
+    vi.mocked(useDashboardExpenses).mockReturnValue({ ...defaultDashboardExpensesMock })
 
     render(<Dashboard />)
 
@@ -89,21 +105,17 @@ describe('Dashboard', () => {
       displayName: null,
       loading: true,
     })
-    vi.mocked(useExpenses).mockReturnValue({
-      expenses: [],
+    vi.mocked(useDashboardExpenses).mockReturnValue({
+      ...defaultDashboardExpensesMock,
       loading: true,
-      error: null,
-      refreshExpenses: vi.fn(),
-      createExpense: vi.fn(),
-      updateExpense: vi.fn(),
-      deleteExpense: vi.fn(),
+      monthlyLoading: true,
     })
 
     render(<Dashboard />)
 
     // 読み込み中…が複数あるので、より具体的なクエリを使用
     expect(screen.getAllByText('読み込み中…').length).toBeGreaterThan(0)
-    expect(screen.getByText('読み込み中...')).toBeInTheDocument()
+    expect(screen.getAllByText('読み込み中...').length).toBeGreaterThan(0)
   })
 
   it('should display monthly total', () => {
@@ -116,15 +128,7 @@ describe('Dashboard', () => {
       displayName: 'Test User',
       loading: false,
     })
-    vi.mocked(useExpenses).mockReturnValue({
-      expenses: [],
-      loading: false,
-      error: null,
-      refreshExpenses: vi.fn(),
-      createExpense: vi.fn(),
-      updateExpense: vi.fn(),
-      deleteExpense: vi.fn(),
-    })
+    vi.mocked(useDashboardExpenses).mockReturnValue({ ...defaultDashboardExpensesMock })
 
     render(<Dashboard />)
 
@@ -143,15 +147,7 @@ describe('Dashboard', () => {
       displayName: 'Test User',
       loading: false,
     })
-    vi.mocked(useExpenses).mockReturnValue({
-      expenses: [],
-      loading: false,
-      error: null,
-      refreshExpenses: vi.fn(),
-      createExpense: vi.fn(),
-      updateExpense: vi.fn(),
-      deleteExpense: vi.fn(),
-    })
+    vi.mocked(useDashboardExpenses).mockReturnValue({ ...defaultDashboardExpensesMock })
 
     render(<Dashboard />)
 
@@ -173,15 +169,7 @@ describe('Dashboard', () => {
       displayName: 'Test User',
       loading: false,
     })
-    vi.mocked(useExpenses).mockReturnValue({
-      expenses: [],
-      loading: false,
-      error: null,
-      refreshExpenses: vi.fn(),
-      createExpense: vi.fn(),
-      updateExpense: vi.fn(),
-      deleteExpense: vi.fn(),
-    })
+    vi.mocked(useDashboardExpenses).mockReturnValue({ ...defaultDashboardExpensesMock })
 
     render(<Dashboard />)
 
