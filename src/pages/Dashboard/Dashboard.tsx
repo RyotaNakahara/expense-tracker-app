@@ -1,22 +1,15 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import {
-  useDashboardExpenses,
-  getCurrentYearMonth,
-  type DashboardYearMonth,
-} from '../../hooks/useDashboardExpenses'
+import { useDashboardExpenses, getCurrentYearMonth } from '../../hooks/useDashboardExpenses'
 import { useUserName } from '../../hooks/useUserName'
 import { ExpenseForm } from '../../components/ExpenseForm'
 import { ExpensesTable } from '../../components/ExpensesTable'
 import { ExpenseModal } from '../../components/ExpenseModal'
 import { Pagination } from '../../components/Pagination'
+import { buildDashboardYearOptions, isSameYearMonth } from '../../utils/dashboardYearMonth'
 import type { Expense } from '../../types'
 import './Dashboard.css'
-
-function isSameCalendarMonth(a: DashboardYearMonth, b: DashboardYearMonth): boolean {
-  return a.year === b.year && a.month === b.month
-}
 
 const Dashboard = () => {
   const { user, signOutUser } = useAuth()
@@ -38,15 +31,12 @@ const Dashboard = () => {
     setSelectedYearMonth,
   } = useDashboardExpenses(user?.uid)
 
-  const isViewingCurrentMonth = isSameCalendarMonth(selectedYearMonth, getCurrentYearMonth())
+  const isViewingCurrentMonth = isSameYearMonth(selectedYearMonth, getCurrentYearMonth())
 
-  const yearOptions = useMemo(() => {
-    const cy = new Date().getFullYear()
-    const y = selectedYearMonth.year
-    const from = Math.min(y, cy - 10)
-    const to = Math.max(y, cy + 1)
-    return Array.from({ length: to - from + 1 }, (_, i) => from + i)
-  }, [selectedYearMonth.year])
+  const yearOptions = useMemo(
+    () => buildDashboardYearOptions(selectedYearMonth.year),
+    [selectedYearMonth.year]
+  )
 
   const monthHeading = isViewingCurrentMonth
     ? '今月の支出'

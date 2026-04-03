@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { expenseService } from '../services/expenseService'
 import { useExpenseMutations } from './useExpenseMutations'
 import type { Expense, CreateExpenseInput, UpdateExpenseInput } from '../types'
@@ -10,16 +10,19 @@ export const useExpenses = (userId: string | undefined) => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
 
-  useEffect(() => {
-    const fetchExpenses = async () => {
+  const loadExpensesFromServer = useCallback(
+    async (options: { withLoadingSpinner: boolean }) => {
       if (!userId) {
         setExpenses([])
+        setError(null)
         setLoading(false)
         return
       }
 
-      try {
+      if (options.withLoadingSpinner) {
         setLoading(true)
+      }
+      try {
         setError(null)
         const data = await expenseService.getExpensesByUserId(userId)
         setExpenses(data)
@@ -28,24 +31,21 @@ export const useExpenses = (userId: string | undefined) => {
         setError(e as Error)
         setExpenses([])
       } finally {
-        setLoading(false)
+        if (options.withLoadingSpinner) {
+          setLoading(false)
+        }
       }
-    }
+    },
+    [userId]
+  )
 
-    fetchExpenses()
-  }, [userId])
+  useEffect(() => {
+    void loadExpensesFromServer({ withLoadingSpinner: true })
+  }, [loadExpensesFromServer])
 
   const refreshExpenses = async () => {
     if (!userId) return
-
-    try {
-      const data = await expenseService.getExpensesByUserId(userId)
-      setExpenses(data)
-      setError(null)
-    } catch (e) {
-      console.error('Failed to refresh expenses', e)
-      setError(e as Error)
-    }
+    await loadExpensesFromServer({ withLoadingSpinner: false })
   }
 
   // 支出を作成

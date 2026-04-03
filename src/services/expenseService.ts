@@ -70,20 +70,24 @@ function monthDateRangeTimestamps(year: number, month: number): { start: Timesta
   return { start: Timestamp.fromDate(start), end: Timestamp.fromDate(end) }
 }
 
-async function sumExpensesInMonth(
-  userId: string,
-  year: number,
-  month: number
-): Promise<number> {
+/** 指定暦月の支出クエリ（userId + date 範囲 + date 降順）。getExpensesInMonth / 月次合計集計で共有 */
+function expensesInMonthOrderedQuery(userId: string, year: number, month: number) {
   const { start, end } = monthDateRangeTimestamps(year, month)
-  const q = query(
+  return query(
     collection(db, COLLECTION),
     where('userId', '==', userId),
     where('date', '>=', start),
     where('date', '<=', end),
     orderBy('date', 'desc')
   )
-  const snap = await getDocs(q)
+}
+
+async function sumExpensesInMonth(
+  userId: string,
+  year: number,
+  month: number
+): Promise<number> {
+  const snap = await getDocs(expensesInMonthOrderedQuery(userId, year, month))
   let sum = 0
   snap.forEach((d) => {
     sum += (d.data().amount as number) || 0
@@ -116,33 +120,12 @@ export const expenseService = {
    * 指定月の支出のみ取得。範囲フィルタと同じフィールドで orderBy が必要なため date 降順（複合インデックス: userId + date）。
    */
   async getExpensesInMonth(userId: string, year: number, month: number): Promise<Expense[]> {
-    const { start, end } = monthDateRangeTimestamps(year, month)
-    const q = query(
-      collection(db, COLLECTION),
-      where('userId', '==', userId),
-      where('date', '>=', start),
-      where('date', '<=', end),
-      orderBy('date', 'desc')
-    )
-    const snap = await getDocs(q)
+    const snap = await getDocs(expensesInMonthOrderedQuery(userId, year, month))
     const list: Expense[] = []
     snap.forEach((d) => {
       list.push(docToExpense(d.id, d.data()))
     })
     return list
-  },
-
-  /**
-   * 複合インデックスなしでも動くフォールバック用（userId のみで取得し、指定月にクライアント側で絞り込み）
-   */
-  filterExpensesInCalendarMonth(expenses: Expense[], year: number, month: number): Expense[] {
-    return expenses
-      .filter((e) => {
-        if (!e.date) return false
-        const d = e.date.toDate()
-        return d.getFullYear() === year && d.getMonth() + 1 === month
-      })
-      .sort((a, b) => (b.date?.toMillis() || 0) - (a.date?.toMillis() || 0))
   },
 
   /**
