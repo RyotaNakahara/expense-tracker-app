@@ -14,7 +14,6 @@ const Home = () => {
   const [isTesting, setIsTesting] = useState(false)
 
   const runTests = async () => {
-    console.log('テスト開始')
     setIsTesting(true)
     const results: TestResult[] = []
 
@@ -79,7 +78,6 @@ const Home = () => {
     setTestResults([...results])
 
     setIsTesting(false)
-    console.log('テスト完了')
   }
 
   useEffect(() => {
@@ -115,8 +113,7 @@ const Home = () => {
         <button
           className="home-test-button"
           onClick={() => {
-            console.log('ボタンクリック')
-            runTests()
+            void runTests()
           }}
           disabled={isTesting}
         >
