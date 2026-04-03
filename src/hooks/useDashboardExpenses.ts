@@ -17,7 +17,7 @@ function sumAmounts(list: Expense[]): number {
 
 /**
  * ダッシュボードは選択した暦月の支出を表示。
- * 1) 月範囲クエリ（インデックス要）→ 失敗時 2) userId のみの取得（インデックス不要）＋クライアントでその月に絞る。
+ * Firestore は月範囲クエリ（userId + date）のみ使用。失敗時も userId 全件取得は行わずエラーにする（読み取り・無料枠対策）。
  * 合計は一覧と同じデータから算出（monthlyTotals ドキュメントに依存しない）。
  */
 export const useDashboardExpenses = (userId: string | undefined) => {
@@ -61,35 +61,24 @@ export const useDashboardExpenses = (userId: string | undefined) => {
       const cancelled = opts?.cancelled ?? (() => false)
       const { year, month } = yearMonth
 
-      let list: Expense[] = []
       try {
-        list = await expenseService.getExpensesInMonth(userId, year, month)
+        const list = await expenseService.getExpensesInMonth(userId, year, month)
         if (cancelled()) return
-      } catch (firstErr) {
-        console.warn('getExpensesInMonth failed, using userId-only fallback', firstErr)
-        try {
-          const all = await expenseService.getExpensesByUserId(userId)
-          if (cancelled()) return
-          list = expenseService.filterExpensesInCalendarMonth(all, year, month)
-        } catch (secondErr) {
-          if (!cancelled()) {
-            console.error(secondErr)
-            setError(secondErr as Error)
-            setMonthExpensesAll([])
-            setExpenses([])
-            setMonthlyTotal(0)
-            setTotalPages(1)
-            setCurrentPage(1)
-          }
-          return
+        setMonthExpensesAll(list)
+        setMonthlyTotal(sumAmounts(list))
+        applyClientPage(list, 1)
+        setError(null)
+      } catch (err) {
+        console.error('getExpensesInMonth failed (no broad-fetch fallback)', err)
+        if (!cancelled()) {
+          setError(err as Error)
+          setMonthExpensesAll([])
+          setExpenses([])
+          setMonthlyTotal(0)
+          setTotalPages(1)
+          setCurrentPage(1)
         }
       }
-
-      if (cancelled()) return
-      setMonthExpensesAll(list)
-      setMonthlyTotal(sumAmounts(list))
-      applyClientPage(list, 1)
-      setError(null)
     },
     [userId, yearMonth, applyClientPage]
   )

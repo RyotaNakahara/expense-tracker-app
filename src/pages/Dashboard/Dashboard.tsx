@@ -210,8 +210,13 @@ const Dashboard = () => {
           </div>
           {dashboardListError && (
             <p className="dashboard-list-error" role="alert">
-              支出一覧の取得に失敗しました。Firestore の複合インデックス（expenses: userId +
-              date）が作成されているか確認してください。
+              <span className="dashboard-list-error-summary">
+                支出一覧の取得に失敗しました。Firestore に複合インデックス（collection: expenses、フィールド:
+                userId と date、並び: date 降順）が有効か確認してください。読み取り回数の抑制のため、全件取得フォールバックは行いません。
+              </span>
+              {dashboardListError.message ? (
+                <span className="dashboard-list-error-detail">{dashboardListError.message}</span>
+              ) : null}
             </p>
           )}
           <ExpensesTable

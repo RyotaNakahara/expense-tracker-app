@@ -80,7 +80,8 @@ async function sumExpensesInMonth(
     collection(db, COLLECTION),
     where('userId', '==', userId),
     where('date', '>=', start),
-    where('date', '<=', end)
+    where('date', '<=', end),
+    orderBy('date', 'desc')
   )
   const snap = await getDocs(q)
   let sum = 0
@@ -112,7 +113,7 @@ export const expenseService = {
   },
 
   /**
-   * 指定月の支出のみ取得（orderBy なし・既存の月範囲インデックス向け）。クライアントで日付降順に整列。
+   * 指定月の支出のみ取得。範囲フィルタと同じフィールドで orderBy が必要なため date 降順（複合インデックス: userId + date）。
    */
   async getExpensesInMonth(userId: string, year: number, month: number): Promise<Expense[]> {
     const { start, end } = monthDateRangeTimestamps(year, month)
@@ -120,14 +121,14 @@ export const expenseService = {
       collection(db, COLLECTION),
       where('userId', '==', userId),
       where('date', '>=', start),
-      where('date', '<=', end)
+      where('date', '<=', end),
+      orderBy('date', 'desc')
     )
     const snap = await getDocs(q)
     const list: Expense[] = []
     snap.forEach((d) => {
       list.push(docToExpense(d.id, d.data()))
     })
-    list.sort((a, b) => (b.date?.toMillis() || 0) - (a.date?.toMillis() || 0))
     return list
   },
 
