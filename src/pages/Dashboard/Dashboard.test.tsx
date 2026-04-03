@@ -159,6 +159,75 @@ describe('Dashboard', () => {
     })
   })
 
+  it('should render year and month selectors and expense count', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: mockUser,
+      loading: false,
+      signOutUser: vi.fn(),
+    })
+    vi.mocked(useUserName).mockReturnValue({
+      displayName: 'Test User',
+      loading: false,
+    })
+    vi.mocked(useDashboardExpenses).mockReturnValue({
+      ...defaultDashboardExpensesMock,
+      monthExpenseCount: 5,
+    })
+
+    render(<Dashboard />)
+
+    expect(screen.getByRole('group', { name: '表示する年月' })).toBeInTheDocument()
+    expect(screen.getByLabelText('年')).toBeInTheDocument()
+    expect(screen.getByLabelText('月')).toBeInTheDocument()
+    expect(screen.getByText('5件')).toBeInTheDocument()
+  })
+
+  it('should call setSelectedYearMonth when year select changes', async () => {
+    const setSelectedYearMonth = vi.fn()
+    const userEvent = (await import('@testing-library/user-event')).default.setup()
+
+    vi.mocked(useAuth).mockReturnValue({
+      user: mockUser,
+      loading: false,
+      signOutUser: vi.fn(),
+    })
+    vi.mocked(useUserName).mockReturnValue({
+      displayName: 'Test User',
+      loading: false,
+    })
+    vi.mocked(useDashboardExpenses).mockReturnValue({
+      ...defaultDashboardExpensesMock,
+      setSelectedYearMonth,
+      selectedYearMonth: { year: 2026, month: 4 },
+    })
+
+    render(<Dashboard />)
+
+    await userEvent.selectOptions(screen.getByLabelText('年'), '2024')
+    expect(setSelectedYearMonth).toHaveBeenCalledWith(2024, 4)
+  })
+
+  it('should show list error summary and detail message', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: mockUser,
+      loading: false,
+      signOutUser: vi.fn(),
+    })
+    vi.mocked(useUserName).mockReturnValue({
+      displayName: 'Test User',
+      loading: false,
+    })
+    vi.mocked(useDashboardExpenses).mockReturnValue({
+      ...defaultDashboardExpensesMock,
+      error: new Error('failed-precondition: missing index'),
+    })
+
+    render(<Dashboard />)
+
+    expect(screen.getByText(/支出一覧の取得に失敗しました/)).toBeInTheDocument()
+    expect(screen.getByText(/failed-precondition: missing index/)).toBeInTheDocument()
+  })
+
   it('should render links correctly', () => {
     vi.mocked(useAuth).mockReturnValue({
       user: mockUser,
