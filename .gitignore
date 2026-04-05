@@ -25,7 +25,10 @@ ehthumbs.db
 Thumbs.db
 
 # 環境変数ファイル (Environment variables)
+# .env.example のみコミット可（実値は含めない）
 .env
+.env.development
+.env.production
 .env.local
 .env.development.local
 .env.test.local

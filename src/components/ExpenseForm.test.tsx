@@ -3,12 +3,12 @@ import { render, screen, waitFor } from '../test/testUtils'
 import { ExpenseForm } from './ExpenseForm'
 import { useCategories } from '../hooks/useCategories'
 import { useTags } from '../hooks/useTags'
-import { useExpenses } from '../hooks/useExpenses'
+import { useExpenseMutations } from '../hooks/useExpenseMutations'
 
 // モック
 vi.mock('../hooks/useCategories')
 vi.mock('../hooks/useTags')
-vi.mock('../hooks/useExpenses')
+vi.mock('../hooks/useExpenseMutations')
 vi.mock('../services/categoryService', () => ({
   categoryService: {
     createCategory: vi.fn(),
@@ -45,11 +45,7 @@ describe('ExpenseForm', () => {
       error: null,
       refreshTags: vi.fn(),
     })
-    vi.mocked(useExpenses).mockReturnValue({
-      expenses: [],
-      loading: false,
-      error: null,
-      refreshExpenses: vi.fn(),
+    vi.mocked(useExpenseMutations).mockReturnValue({
       createExpense: mockCreateExpense,
       updateExpense: vi.fn(),
       deleteExpense: vi.fn(),
@@ -155,6 +151,43 @@ describe('ExpenseForm', () => {
     await waitFor(
       () => {
         expect(mockCreateExpense).toHaveBeenCalled()
+        expect(mockOnSuccess).toHaveBeenCalled()
+      },
+      { timeout: 3000 }
+    )
+  })
+
+  it('should call createExpense without payment method when left unselected', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default.setup()
+
+    mockCreateExpense.mockResolvedValue(undefined)
+    global.alert = vi.fn()
+
+    render(<ExpenseForm userId="test-user" onSuccess={mockOnSuccess} />)
+
+    const dateInput = screen.getByLabelText(/日付/) as HTMLInputElement
+    await userEvent.clear(dateInput)
+    await userEvent.type(dateInput, '2024-01-01')
+
+    const amountInput = screen.getByLabelText(/金額/) as HTMLInputElement
+    await userEvent.clear(amountInput)
+    await userEvent.type(amountInput, '500')
+
+    const categorySelect = screen.getByLabelText(/カテゴリー/) as HTMLSelectElement
+    await userEvent.selectOptions(categorySelect, '食費')
+
+    const submitButton = screen.getByRole('button', { name: '登録' })
+    await userEvent.click(submitButton)
+
+    await waitFor(
+      () => {
+        expect(mockCreateExpense).toHaveBeenCalledWith(
+          expect.objectContaining({
+            amount: 500,
+            bigCategory: '食費',
+            paymentMethod: undefined,
+          })
+        )
         expect(mockOnSuccess).toHaveBeenCalled()
       },
       { timeout: 3000 }

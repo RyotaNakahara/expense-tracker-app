@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "expense-tracker-app-f2e67"
+    "default": "expense-tracker-app-f2e67",
+    "dev": "expense-tracker-dev-cb4b1"
   }
 }

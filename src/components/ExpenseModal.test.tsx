@@ -3,14 +3,14 @@ import { render, screen, waitFor } from '../test/testUtils'
 import { ExpenseModal } from './ExpenseModal'
 import { useCategories } from '../hooks/useCategories'
 import { useTags } from '../hooks/useTags'
-import { useExpenses } from '../hooks/useExpenses'
+import { useExpenseMutations } from '../hooks/useExpenseMutations'
 import { Timestamp } from 'firebase/firestore'
 import type { Expense } from '../types'
 
 // モック
 vi.mock('../hooks/useCategories')
 vi.mock('../hooks/useTags')
-vi.mock('../hooks/useExpenses')
+vi.mock('../hooks/useExpenseMutations')
 
 const mockCategories = [
   { id: 'cat1', name: '食費' },
@@ -60,11 +60,7 @@ describe('ExpenseModal', () => {
       error: null,
       refreshTags: vi.fn(),
     })
-    vi.mocked(useExpenses).mockReturnValue({
-      expenses: [],
-      loading: false,
-      error: null,
-      refreshExpenses: vi.fn(),
+    vi.mocked(useExpenseMutations).mockReturnValue({
       createExpense: vi.fn(),
       updateExpense: mockUpdateExpense,
       deleteExpense: mockDeleteExpense,

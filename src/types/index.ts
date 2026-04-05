@@ -20,7 +20,7 @@ export interface CreateExpenseInput {
   amount: number
   bigCategory: string
   tags: string[]
-  paymentMethod: string
+  paymentMethod?: string
   description?: string
 }
 

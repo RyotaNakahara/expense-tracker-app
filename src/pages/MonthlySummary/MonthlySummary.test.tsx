@@ -10,6 +10,23 @@ import type { User } from 'firebase/auth'
 vi.mock('../../context/AuthContext')
 vi.mock('../../hooks/useExpenses')
 vi.mock('../../hooks/useUserName')
+vi.mock('../../hooks/useCategories', () => ({
+  useCategories: () => ({
+    categories: [],
+    loading: false,
+    error: null,
+    refreshCategories: vi.fn(),
+  }),
+}))
+vi.mock('../../hooks/useTags', () => ({
+  useTags: () => ({
+    allTags: [],
+    filteredTags: [],
+    loading: false,
+    error: null,
+    refreshTags: vi.fn(),
+  }),
+}))
 vi.mock('recharts', () => ({
   PieChart: ({ children }: { children: React.ReactNode }) => <div data-testid="pie-chart">{children}</div>,
   Pie: () => null,

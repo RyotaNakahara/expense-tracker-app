@@ -23,6 +23,11 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // 月次支出合計（ダッシュボード用・読取削減）
+    match /users/{userId}/monthlyTotals/{periodId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // その他のコレクション: 認証済みユーザーのみアクセス可能（必要に応じて調整）
     match /{document=**} {
       allow read, write: if request.auth != null;

@@ -25,9 +25,11 @@ const MonthlyExpenses = () => {
   const currentYear = now.getFullYear()
   const currentMonth = now.getMonth() + 1 // getMonth()は0-11を返すため+1
 
-  // URLクエリパラメータから年月を取得
+  // URLクエリパラメータから年月・カテゴリーを取得
   const urlYear = searchParams.get('year')
   const urlMonth = searchParams.get('month')
+  const urlCategory = searchParams.get('category')
+  const urlTag = searchParams.get('tag')
 
   // 検索条件の状態（URLパラメータがあればそれを使用、なければ現在の年月）
   const [selectedYear, setSelectedYear] = useState<number | null>(
@@ -36,8 +38,8 @@ const MonthlyExpenses = () => {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(
     urlMonth ? Number(urlMonth) : currentMonth
   )
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
-  const [selectedTag, setSelectedTag] = useState<string>('')
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => urlCategory ?? '')
+  const [selectedTag, setSelectedTag] = useState<string>(() => urlTag ?? '')
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([])
 
   // 選択されたカテゴリーに基づいてタグをフィルタリング
@@ -57,7 +59,10 @@ const MonthlyExpenses = () => {
   }, [selectedCategory, categories, allTags])
 
   // 検索セクションの折りたたみ状態（URLパラメータがある場合は折りたたむ）
-  const [isSearchExpanded, setIsSearchExpanded] = useState<boolean>(!urlYear && !urlMonth)
+  const [isSearchExpanded, setIsSearchExpanded] = useState<boolean>(
+    () =>
+      !urlYear && !urlMonth && !searchParams.has('category') && !searchParams.has('tag')
+  )
 
   // URLパラメータが変更されたときに状態を更新
   useEffect(() => {
@@ -67,11 +72,21 @@ const MonthlyExpenses = () => {
     if (urlMonth) {
       setSelectedMonth(Number(urlMonth))
     }
+    if (searchParams.has('category')) {
+      setSelectedCategory(searchParams.get('category') || '')
+    } else {
+      setSelectedCategory('')
+    }
+    if (searchParams.has('tag')) {
+      setSelectedTag(searchParams.get('tag') || '')
+    } else {
+      setSelectedTag('')
+    }
     // URLパラメータがある場合は検索セクションを折りたたむ
-    if (urlYear || urlMonth) {
+    if (urlYear || urlMonth || searchParams.has('category') || searchParams.has('tag')) {
       setIsSearchExpanded(false)
     }
-  }, [urlYear, urlMonth])
+  }, [urlYear, urlMonth, searchParams])
 
   // 選択した条件で支出をフィルタリング
   const filteredExpenses = useMemo(() => {
