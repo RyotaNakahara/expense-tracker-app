@@ -15,11 +15,6 @@ const MonthlyExpenses = () => {
   const [searchParams] = useSearchParams()
   const { displayName, loading: loadingName } = useUserName(user)
 
-  // カスタムフックを使用してデータを取得
-  const { expenses, loading: loadingExpenses } = useExpenses(user?.uid)
-  const { categories, loading: loadingCategories } = useCategories()
-  const { allTags, loading: loadingTags } = useTags()
-
   // 現在の年月をデフォルト値として設定
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -41,6 +36,14 @@ const MonthlyExpenses = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(() => urlCategory ?? '')
   const [selectedTag, setSelectedTag] = useState<string>(() => urlTag ?? '')
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([])
+
+  // 選択年月があるときはその月だけ取得（読取抑制）
+  const { expenses, loading: loadingExpenses } = useExpenses(user?.uid, {
+    year: selectedYear,
+    month: selectedMonth,
+  })
+  const { categories, loading: loadingCategories } = useCategories()
+  const { allTags, loading: loadingTags } = useTags()
 
   // 選択されたカテゴリーに基づいてタグをフィルタリング
   const filteredTags = useMemo(() => {

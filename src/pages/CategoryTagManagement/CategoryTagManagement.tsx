@@ -17,16 +17,20 @@ import {
 } from '@dnd-kit/sortable'
 import { useAuth } from '../../context/AuthContext'
 import { useCategories } from '../../hooks/useCategories'
+import { useIncomeCategories } from '../../hooks/useIncomeCategories'
 import { useTags } from '../../hooks/useTags'
 import { useUserName } from '../../hooks/useUserName'
 import { CategoryForm } from '../../components/CategoryForm'
 import { TagForm } from '../../components/TagForm'
 import { CategoryModal } from '../../components/CategoryModal'
+import { IncomeCategoryModal } from '../../components/IncomeCategoryModal'
 import { TagModal } from '../../components/TagModal'
 import { SortableCategoryItem } from '../../components/SortableCategoryItem'
 import { SortableTagItem } from '../../components/SortableTagItem'
 import { categoryService } from '../../services/categoryService'
+import { incomeCategoryService } from '../../services/incomeCategoryService'
 import { tagService } from '../../services/tagService'
+import { DEFAULT_INCOME_CATEGORIES } from '../../constants/defaultIncomeCategories'
 import type { Category, Tag } from '../../types'
 import './CategoryTagManagement.css'
 
@@ -35,13 +39,22 @@ const CategoryTagManagement = () => {
   const navigate = useNavigate()
   const { displayName, loading: loadingName } = useUserName(user)
 
-  const { categories, refreshCategories } = useCategories()
-  const { allTags, refreshTags } = useTags()
-
   const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false)
+  const [showIncomeCategoryForm, setShowIncomeCategoryForm] = useState(false)
+  /** 収入カテゴリー管理は普段閉じる */
+  const [showIncomeCategorySection, setShowIncomeCategorySection] = useState(false)
   const [showTagForm, setShowTagForm] = useState<boolean>(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [editingIncomeCategory, setEditingIncomeCategory] = useState<Category | null>(null)
   const [editingTag, setEditingTag] = useState<Tag | null>(null)
+  const [seedingIncomeCategories, setSeedingIncomeCategories] = useState(false)
+
+  const { categories, refreshCategories } = useCategories()
+  const {
+    categories: incomeCategories,
+    refreshCategories: refreshIncomeCategories,
+  } = useIncomeCategories({ enabled: showIncomeCategorySection })
+  const { allTags, refreshTags } = useTags()
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -63,6 +76,31 @@ const CategoryTagManagement = () => {
     setShowCategoryForm(false)
     setEditingCategory(null)
     refreshCategories()
+  }
+
+  const handleIncomeCategorySuccess = () => {
+    setShowIncomeCategoryForm(false)
+    setEditingIncomeCategory(null)
+    void refreshIncomeCategories()
+  }
+
+  const handleSeedIncomeCategories = async () => {
+    setSeedingIncomeCategories(true)
+    try {
+      const existing = new Set(incomeCategories.map((c) => c.name.toLowerCase()))
+      for (const name of DEFAULT_INCOME_CATEGORIES) {
+        if (!existing.has(name.toLowerCase())) {
+          await incomeCategoryService.createCategory({ name })
+        }
+      }
+      await refreshIncomeCategories()
+      alert('収入カテゴリーの初期データを追加しました')
+    } catch (error) {
+      console.error('Failed to seed income categories', error)
+      alert('初期データの追加に失敗しました')
+    } finally {
+      setSeedingIncomeCategories(false)
+    }
   }
 
   const handleTagSuccess = () => {
@@ -136,6 +174,26 @@ const CategoryTagManagement = () => {
     }
   }
 
+  const handleIncomeCategoryDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = incomeCategories.findIndex((cat) => cat.id === active.id)
+    const newIndex = incomeCategories.findIndex((cat) => cat.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const newCategories = arrayMove(incomeCategories, oldIndex, newIndex)
+    const updates = newCategories.map((cat, index) => ({ id: cat.id, order: index }))
+
+    try {
+      await incomeCategoryService.updateCategoriesOrder(updates)
+      await refreshIncomeCategories()
+    } catch (error) {
+      console.error('Failed to update income category order', error)
+      alert('順序の更新に失敗しました')
+    }
+  }
+
   const handleTagDragEnd = async (event: DragEndEvent, categoryId: string) => {
     const { active, over } = event
 
@@ -185,17 +243,17 @@ const CategoryTagManagement = () => {
           <span className="management-user-name">
             {loadingName ? '読み込み中…' : displayName ?? 'ゲスト'}
           </span>
-          <button className="management-signout-button" onClick={handleSignOut}>
+          <button className="management-signout-button" onClick={() => void handleSignOut()}>
             ログアウト
           </button>
         </div>
       </header>
 
       <main className="management-content">
-        {/* カテゴリー作成セクション */}
+        {/* 支出カテゴリー作成セクション */}
         <section className="management-card category-section">
           <div className="section-header">
-            <h2>カテゴリー管理</h2>
+            <h2>支出カテゴリー管理</h2>
             <button
               className="toggle-form-button"
               onClick={() => {
@@ -224,7 +282,7 @@ const CategoryTagManagement = () => {
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
-                onDragEnd={handleCategoryDragEnd}
+                onDragEnd={(e) => void handleCategoryDragEnd(e)}
               >
                 <SortableContext
                   items={categories.map((cat) => cat.id)}
@@ -253,6 +311,102 @@ const CategoryTagManagement = () => {
               onSuccess={handleCategoryModalSuccess}
               onDelete={handleCategoryModalDelete}
             />
+          )}
+        </section>
+
+        {/* 収入カテゴリー（普段は閉じる） */}
+        <section className="management-card category-section income-category-toggle-card">
+          <button
+            type="button"
+            className="income-section-toggle"
+            aria-expanded={showIncomeCategorySection}
+            onClick={() => setShowIncomeCategorySection((v) => !v)}
+          >
+            <span>
+              {showIncomeCategorySection ? '収入カテゴリーを閉じる' : '収入カテゴリーを表示'}
+            </span>
+            <span className="income-section-toggle-icon" aria-hidden="true">
+              {showIncomeCategorySection ? '▲' : '▼'}
+            </span>
+          </button>
+
+          {showIncomeCategorySection && (
+            <>
+              <div className="section-header">
+                <h2>収入カテゴリー管理</h2>
+                <div className="section-header-actions">
+                  {incomeCategories.length === 0 && (
+                    <button
+                      type="button"
+                      className="toggle-form-button"
+                      disabled={seedingIncomeCategories}
+                      onClick={() => void handleSeedIncomeCategories()}
+                    >
+                      {seedingIncomeCategories ? '追加中…' : '初期データを追加'}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="toggle-form-button"
+                    onClick={() => {
+                      if (editingIncomeCategory) setEditingIncomeCategory(null)
+                      setShowIncomeCategoryForm(!showIncomeCategoryForm)
+                    }}
+                  >
+                    {showIncomeCategoryForm ? 'フォームを閉じる' : 'カテゴリーを追加'}
+                  </button>
+                </div>
+              </div>
+
+              {showIncomeCategoryForm && (
+                <CategoryForm
+                  categories={incomeCategories}
+                  onSuccess={handleIncomeCategorySuccess}
+                  api={incomeCategoryService}
+                  namePlaceholder="例: 給与"
+                  inputId="incomeCategoryName"
+                />
+              )}
+
+              <div className="items-list">
+                <h3>登録済み収入カテゴリー</h3>
+                {incomeCategories.length === 0 ? (
+                  <p className="empty-message">
+                    収入カテゴリーが登録されていません。「初期データを追加」または「カテゴリーを追加」から登録できます。
+                  </p>
+                ) : (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={(e) => void handleIncomeCategoryDragEnd(e)}
+                  >
+                    <SortableContext
+                      items={incomeCategories.map((cat) => cat.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <ul className="items-list-items">
+                        {incomeCategories.map((category) => (
+                          <SortableCategoryItem
+                            key={category.id}
+                            category={category}
+                            onEdit={setEditingIncomeCategory}
+                          />
+                        ))}
+                      </ul>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </div>
+
+              {editingIncomeCategory && (
+                <IncomeCategoryModal
+                  category={editingIncomeCategory}
+                  categories={incomeCategories}
+                  onClose={() => setEditingIncomeCategory(null)}
+                  onSuccess={() => void refreshIncomeCategories()}
+                />
+              )}
+            </>
           )}
         </section>
 

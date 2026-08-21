@@ -7,6 +7,11 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // 収入カテゴリーマスタ
+    match /incomeCategories/{categoryId} {
+      allow read, write: if request.auth != null;
+    }
+
     // tagsコレクション: 認証済みユーザーは読み書き可能
     match /tags/{tagId} {
       allow read, write: if request.auth != null;
@@ -14,6 +19,12 @@ service cloud.firestore {
 
     // expensesコレクション: 自分のデータのみ読み書き可能
     match /expenses/{expenseId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+
+    // incomesコレクション: 自分のデータのみ読み書き可能
+    match /incomes/{incomeId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
@@ -28,8 +39,20 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // その他のコレクション: 認証済みユーザーのみアクセス可能（必要に応じて調整）
-    match /{document=**} {
+    // 月次収入合計
+    match /users/{userId}/monthlyIncomeTotals/{periodId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 月次予算（本人のみ）
+    match /users/{userId}/budgets/{budgetId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.userId == userId;
+    }
+
+    // 支払い方法マスタ
+    match /paymentMethods/{paymentMethodId} {
       allow read, write: if request.auth != null;
     }
   }

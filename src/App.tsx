@@ -6,6 +6,7 @@ import CategoryTagManagement from './pages/CategoryTagManagement/CategoryTagMana
 import MonthlyExpenses from './pages/MonthlyExpenses/MonthlyExpenses'
 import MonthlySummary from './pages/MonthlySummary/MonthlySummary'
 import Profile from './pages/Profile/Profile'
+import Budget from './pages/Budget/Budget'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -64,6 +65,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/budget"
+          element={
+            <ProtectedRoute>
+              <Budget />
             </ProtectedRoute>
           }
         />

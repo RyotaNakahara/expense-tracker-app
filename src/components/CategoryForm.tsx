@@ -3,14 +3,31 @@ import { categoryService } from '../services/categoryService'
 import type { Category } from '../types'
 import './CategoryForm.css'
 
+type CategoryApi = {
+  createCategory: (input: { name: string }) => Promise<string>
+  updateCategory: (categoryId: string, input: { name: string }) => Promise<void>
+}
+
 interface CategoryFormProps {
   categories: Category[]
   onSuccess: () => void
   editingCategory?: Category | null
   onCancel?: () => void
+  /** 省略時は支出カテゴリー */
+  api?: CategoryApi
+  namePlaceholder?: string
+  inputId?: string
 }
 
-export const CategoryForm = ({ categories, onSuccess, editingCategory, onCancel }: CategoryFormProps) => {
+export const CategoryForm = ({
+  categories,
+  onSuccess,
+  editingCategory,
+  onCancel,
+  api = categoryService,
+  namePlaceholder = '例: 食費',
+  inputId = 'categoryName',
+}: CategoryFormProps) => {
   const [categoryName, setCategoryName] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
 
@@ -33,7 +50,7 @@ export const CategoryForm = ({ categories, onSuccess, editingCategory, onCancel 
     setSubmitting(true)
     try {
       const existingCategory = categories.find(
-        (cat) => 
+        (cat) =>
           cat.id !== editingCategory?.id &&
           cat.name.toLowerCase() === categoryName.trim().toLowerCase()
       )
@@ -45,16 +62,14 @@ export const CategoryForm = ({ categories, onSuccess, editingCategory, onCancel 
       }
 
       if (editingCategory) {
-        // 編集モード
-        await categoryService.updateCategory(editingCategory.id, { name: categoryName.trim() })
+        await api.updateCategory(editingCategory.id, { name: categoryName.trim() })
         alert('カテゴリーを更新しました')
       } else {
-        // 作成モード
-        await categoryService.createCategory({ name: categoryName.trim() })
+        await api.createCategory({ name: categoryName.trim() })
         setCategoryName('')
         alert('カテゴリーを追加しました')
       }
-      
+
       onSuccess()
     } catch (error) {
       console.error('Failed to save category', error)
@@ -65,27 +80,24 @@ export const CategoryForm = ({ categories, onSuccess, editingCategory, onCancel 
   }
 
   return (
-    <form className="management-form" onSubmit={handleSubmit}>
+    <form className="management-form" onSubmit={(e) => void handleSubmit(e)}>
       <div className="form-group">
-        <label htmlFor="categoryName">カテゴリー名 <span className="required">*</span></label>
+        <label htmlFor={inputId}>
+          カテゴリー名 <span className="required">*</span>
+        </label>
         <input
           type="text"
-          id="categoryName"
+          id={inputId}
           value={categoryName}
           onChange={(e) => setCategoryName(e.target.value)}
-          placeholder="例: 食費"
+          placeholder={namePlaceholder}
           required
           disabled={submitting}
         />
       </div>
       <div className="form-actions">
         {editingCategory && onCancel ? (
-          <button
-            type="button"
-            className="cancel-button"
-            onClick={onCancel}
-            disabled={submitting}
-          >
+          <button type="button" className="cancel-button" onClick={onCancel} disabled={submitting}>
             キャンセル
           </button>
         ) : (
@@ -99,12 +111,15 @@ export const CategoryForm = ({ categories, onSuccess, editingCategory, onCancel 
           </button>
         )}
         <button type="submit" className="submit-button" disabled={submitting}>
-          {submitting 
-            ? (editingCategory ? '更新中...' : '作成中...') 
-            : (editingCategory ? '更新' : '作成')}
+          {submitting
+            ? editingCategory
+              ? '更新中...'
+              : '作成中...'
+            : editingCategory
+              ? '更新'
+              : '作成'}
         </button>
       </div>
     </form>
   )
 }
-

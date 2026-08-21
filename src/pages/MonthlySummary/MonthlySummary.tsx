@@ -42,7 +42,9 @@ const MonthlySummary = () => {
   const { user, signOutUser } = useAuth()
   const navigate = useNavigate()
   const { displayName, loading: loadingName } = useUserName(user)
-  const { expenses, loading: loadingExpenses } = useExpenses(user?.uid)
+  const { expenses, loading: loadingExpenses } = useExpenses(user?.uid, {
+    recentMonths: 24,
+  })
   const { categories } = useCategories()
   const { allTags } = useTags()
 
