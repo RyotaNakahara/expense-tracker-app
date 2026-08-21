@@ -160,8 +160,38 @@
 .category-tag-section,
 .expense-form-section,
 .expenses-section,
+.income-toggle-section,
 .monthly-summary-section {
   grid-column: 1 / -1;
+}
+
+.income-toggle-section {
+  padding: 0.75rem 1.25rem;
+}
+
+.income-section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.25rem;
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.income-section-toggle:hover {
+  color: #0f172a;
+}
+
+.income-section-toggle-icon {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 
 .monthly-summary-section {
@@ -230,7 +260,8 @@
 }
 
 .monthly-summary-link,
-.monthly-search-link {
+.monthly-search-link,
+.monthly-budget-link {
   color: #fff;
   text-decoration: none;
   font-weight: 600;
@@ -243,7 +274,8 @@
 }
 
 .monthly-summary-link:hover,
-.monthly-search-link:hover {
+.monthly-search-link:hover,
+.monthly-budget-link:hover {
   background-color: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.5);
 }
@@ -255,10 +287,37 @@
   gap: 0.5rem;
 }
 
+.monthly-totals-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.monthly-total-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .monthly-total-amount {
   font-size: 2.5rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.monthly-total-amount--income {
+  font-size: 1.75rem;
+  color: #bbf7d0;
+}
+
+.monthly-total-amount--balance {
+  font-size: 1.75rem;
+}
+
+.monthly-total-amount--negative {
+  color: #fecaca;
 }
 
 .monthly-total-label {
@@ -373,6 +432,11 @@
 .expense-amount {
   font-weight: 600;
   color: #0f172a;
+}
+
+.income-amount {
+  font-weight: 600;
+  color: #059669;
 }
 
 .tags-container {

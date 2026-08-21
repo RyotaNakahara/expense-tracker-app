@@ -9,3 +9,10 @@ export const getInitialExpenseFormData = () => ({
   description: '',
 })
 
+export const getInitialIncomeFormData = () => ({
+  date: new Date().toISOString().split('T')[0],
+  amount: '',
+  category: '',
+  description: '',
+})
+

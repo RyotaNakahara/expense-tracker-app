@@ -7,6 +7,7 @@ import {
   startAfter,
   getDocs,
   getDoc,
+  getCountFromServer,
   doc,
   writeBatch,
   Timestamp,
@@ -16,6 +17,12 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
+import {
+  cacheGet,
+  cacheInvalidatePrefix,
+  cacheSet,
+  spentYearCacheKey,
+} from '../utils/firestoreReadCache'
 import type { Expense, CreateExpenseInput, UpdateExpenseInput } from '../types'
 
 const COLLECTION = 'expenses'
@@ -26,7 +33,7 @@ export type ExpensePageResult = {
   hasMore: boolean
 }
 
-function monthlyTotalPeriodId(year: number, month: number): string {
+export function monthlyTotalPeriodId(year: number, month: number): string {
   return `${year}_${String(month).padStart(2, '0')}`
 }
 
@@ -128,6 +135,44 @@ export const expenseService = {
     return list
   },
 
+  /** 月の件数のみ（集計クエリ。ドキュメント全件読取より安い） */
+  async getExpenseCountInMonth(userId: string, year: number, month: number): Promise<number> {
+    const { start, end } = monthDateRangeTimestamps(year, month)
+    const q = query(
+      collection(db, COLLECTION),
+      where('userId', '==', userId),
+      where('date', '>=', start),
+      where('date', '<=', end)
+    )
+    const snap = await getCountFromServer(q)
+    return snap.data().count
+  },
+
+  /**
+   * 直近 N か月分の支出。先に monthlyTotals で金額0の月を飛ばし、有支出月だけ getExpensesInMonth。
+   */
+  async getExpensesForRecentMonths(userId: string, monthsBack: number): Promise<Expense[]> {
+    const now = new Date()
+    const periods: { year: number; month: number }[] = []
+    for (let i = 0; i < monthsBack; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      periods.push({ year: d.getFullYear(), month: d.getMonth() + 1 })
+    }
+
+    const totals = await Promise.all(
+      periods.map((p) => this.getMonthlyTotalForDisplay(userId, p.year, p.month))
+    )
+    const active = periods.filter((_, i) => totals[i] > 0)
+    if (active.length === 0) return []
+
+    const lists = await Promise.all(
+      active.map((p) => this.getExpensesInMonth(userId, p.year, p.month))
+    )
+    const merged = lists.flat()
+    merged.sort((a, b) => (b.date?.toMillis() || 0) - (a.date?.toMillis() || 0))
+    return merged
+  },
+
   /**
    * 指定月のみサーバー側ページング（最大 pageSize+1 件読取）
    */
@@ -211,6 +256,40 @@ export const expenseService = {
     return total
   },
 
+  /**
+   * 指定年の1〜throughMonth の支出合計（円）。セッションキャッシュあり。
+   * throughMonth 省略時は 12。
+   */
+  async getSpentByMonthForYear(
+    userId: string,
+    year: number,
+    throughMonth = 12
+  ): Promise<Record<number, number>> {
+    const end = Math.min(12, Math.max(1, throughMonth))
+    const cacheKey = spentYearCacheKey(userId, year, end)
+    const cached = cacheGet<Record<number, number>>(cacheKey)
+    if (cached) return { ...cached }
+
+    const pairs = await Promise.all(
+      Array.from({ length: end }, async (_, i) => {
+        const month = i + 1
+        const total = await this.getMonthlyTotalForDisplay(userId, year, month)
+        return [month, total] as const
+      })
+    )
+    const map: Record<number, number> = {}
+    for (let m = 1; m <= 12; m++) map[m] = 0
+    for (const [month, total] of pairs) {
+      map[month] = total
+    }
+    cacheSet(cacheKey, map)
+    return map
+  },
+
+  invalidateSpentCaches(userId: string): void {
+    cacheInvalidatePrefix(`spent:${userId}:`)
+  },
+
   async createExpense(userId: string, input: CreateExpenseInput): Promise<string> {
     const now = Timestamp.now()
     const expenseDate = Timestamp.fromDate(input.date)
@@ -231,6 +310,7 @@ export const expenseService = {
     })
     applyMonthlyDeltaInBatch(batch, userId, input.date, input.amount)
     await batch.commit()
+    this.invalidateSpentCaches(userId)
     return expenseRef.id
   },
 
@@ -272,6 +352,7 @@ export const expenseService = {
     }
 
     await batch.commit()
+    this.invalidateSpentCaches(oldUserId)
   },
 
   async deleteExpense(expenseId: string): Promise<void> {
@@ -289,5 +370,6 @@ export const expenseService = {
     batch.delete(expenseRef)
     applyMonthlyDeltaInBatch(batch, userId, expenseDate, -amount)
     await batch.commit()
+    this.invalidateSpentCaches(userId)
   },
 }

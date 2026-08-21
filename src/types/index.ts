@@ -60,3 +60,53 @@ export interface CreateTagInput {
   categoryId: string
 }
 
+/** 月次予算（全体・カテゴリー別・タグ別）。ドキュメント ID は periodId または periodId__cat__ / periodId__tag__ 接尾辞 */
+export interface MonthlyBudget {
+  id: string
+  userId: string
+  year: number
+  month: number
+  amountLimit: number
+  categoryId: string | null
+  categoryName: string | null
+  tagId: string | null
+  tagName: string | null
+  createdAt?: Timestamp
+  updatedAt: Timestamp
+}
+
+/** setBudget 用。全体はすべて省略。カテゴリー別・タグ別は同時に指定しない */
+export interface SetBudgetOptions {
+  categoryId?: string
+  categoryName?: string
+  tagId?: string
+  tagName?: string
+}
+
+// Income型の定義
+export interface Income {
+  id: string
+  date: Timestamp
+  amount: number
+  userId: string
+  /** 収入カテゴリー名（給与など） */
+  category: string
+  description: string
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+export interface CreateIncomeInput {
+  date: Date
+  amount: number
+  category: string
+  description?: string
+}
+
+export interface UpdateIncomeInput {
+  date?: Date
+  amount?: number
+  category?: string
+  description?: string
+}
+

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react'
+import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 import { expenseService } from '../services/expenseService'
 import type { Expense } from '../types'
 
@@ -11,14 +12,10 @@ export function getCurrentYearMonth(): DashboardYearMonth {
   return { year: d.getFullYear(), month: d.getMonth() + 1 }
 }
 
-function sumAmounts(list: Expense[]): number {
-  return list.reduce((s, e) => s + (e.amount || 0), 0)
-}
-
 /**
  * ダッシュボードは選択した暦月の支出を表示。
- * Firestore は月範囲クエリ（userId + date）のみ使用。失敗時も userId 全件取得は行わずエラーにする（読み取り・無料枠対策）。
- * 合計は一覧と同じデータから算出（monthlyTotals ドキュメントに依存しない）。
+ * 合計は monthlyTotals、一覧はサーバーページング、件数は count 集計。
+ * 月全件はカテゴリー／タグ予算突合が必要なときだけ読み取る。
  */
 export const useDashboardExpenses = (userId: string | undefined) => {
   const [yearMonth, setYearMonth] = useState<DashboardYearMonth>(getCurrentYearMonth)
@@ -40,78 +37,161 @@ export const useDashboardExpenses = (userId: string | undefined) => {
   }, [])
 
   const [expenses, setExpenses] = useState<Expense[]>([])
-  /** 選択月分の全件（ページ分割の元） */
   const [monthExpensesAll, setMonthExpensesAll] = useState<Expense[]>([])
+  const [monthExpensesAllLoading, setMonthExpensesAllLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [monthlyTotal, setMonthlyTotal] = useState(0)
+  const [monthlyLoading, setMonthlyLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [monthExpenseCount, setMonthExpenseCount] = useState(0)
   const [error, setError] = useState<Error | null>(null)
 
-  const applyClientPage = useCallback((full: Expense[], page: number) => {
-    const start = (page - 1) * DASHBOARD_EXPENSE_PAGE_SIZE
-    setExpenses(full.slice(start, start + DASHBOARD_EXPENSE_PAGE_SIZE))
-    setCurrentPage(page)
-    setTotalPages(Math.max(1, Math.ceil(full.length / DASHBOARD_EXPENSE_PAGE_SIZE)))
+  const pageDataRef = useRef<Map<number, Expense[]>>(new Map())
+  /** page N の末尾ドキュメント（page N+1 の startAfter 用） */
+  const lastDocByPageRef = useRef<Map<number, QueryDocumentSnapshot<DocumentData>>>(new Map())
+  const allLoadedForKeyRef = useRef<string | null>(null)
+
+  const yearMonthKey = `${yearMonth.year}_${yearMonth.month}`
+
+  const resetPaging = useCallback(() => {
+    pageDataRef.current = new Map()
+    lastDocByPageRef.current = new Map()
+    setMonthExpensesAll([])
+    allLoadedForKeyRef.current = null
   }, [])
 
-  const loadDashboardMonthData = useCallback(
+  const loadInitial = useCallback(
     async (opts?: { cancelled?: () => boolean }) => {
       if (!userId) return
       const cancelled = opts?.cancelled ?? (() => false)
       const { year, month } = yearMonth
 
       try {
-        const list = await expenseService.getExpensesInMonth(userId, year, month)
+        const [total, count, pageResult] = await Promise.all([
+          expenseService.getMonthlyTotalForDisplay(userId, year, month),
+          expenseService.getExpenseCountInMonth(userId, year, month),
+          expenseService.getExpensesPageForMonth(
+            userId,
+            year,
+            month,
+            DASHBOARD_EXPENSE_PAGE_SIZE
+          ),
+        ])
         if (cancelled()) return
-        setMonthExpensesAll(list)
-        setMonthlyTotal(sumAmounts(list))
-        applyClientPage(list, 1)
+
+        resetPaging()
+        pageDataRef.current.set(1, pageResult.expenses)
+        if (pageResult.lastDoc) {
+          lastDocByPageRef.current.set(1, pageResult.lastDoc)
+        }
+
+        setMonthlyTotal(total)
+        setMonthExpenseCount(count)
+        setTotalPages(Math.max(1, Math.ceil(count / DASHBOARD_EXPENSE_PAGE_SIZE)))
+        setCurrentPage(1)
+        setExpenses(pageResult.expenses)
         setError(null)
       } catch (err) {
-        console.error('getExpensesInMonth failed (no broad-fetch fallback)', err)
+        console.error('dashboard expense load failed (no broad-fetch fallback)', err)
         if (!cancelled()) {
           setError(err as Error)
-          setMonthExpensesAll([])
+          resetPaging()
           setExpenses([])
           setMonthlyTotal(0)
+          setMonthExpenseCount(0)
           setTotalPages(1)
           setCurrentPage(1)
         }
       }
     },
-    [userId, yearMonth, applyClientPage]
+    [userId, yearMonth, resetPaging]
   )
 
   const goToPage = useCallback(
-    (target: number) => {
-      if (monthExpensesAll.length === 0) {
-        if (target === 1) applyClientPage([], 1)
+    async (target: number) => {
+      if (!userId) return
+      const maxPage = Math.max(1, Math.ceil(monthExpenseCount / DASHBOARD_EXPENSE_PAGE_SIZE))
+      const page = Math.min(Math.max(1, target), maxPage)
+
+      if (pageDataRef.current.has(page)) {
+        setExpenses(pageDataRef.current.get(page)!)
+        setCurrentPage(page)
         return
       }
-      const maxPage = Math.max(1, Math.ceil(monthExpensesAll.length / DASHBOARD_EXPENSE_PAGE_SIZE))
-      const page = Math.min(Math.max(1, target), maxPage)
-      applyClientPage(monthExpensesAll, page)
+
+      const { year, month } = yearMonth
+      let walk = 1
+      while (walk < page) {
+        if (!pageDataRef.current.has(walk + 1)) {
+          const startAfterDoc = lastDocByPageRef.current.get(walk)
+          if (!startAfterDoc) break
+          const result = await expenseService.getExpensesPageForMonth(
+            userId,
+            year,
+            month,
+            DASHBOARD_EXPENSE_PAGE_SIZE,
+            startAfterDoc
+          )
+          pageDataRef.current.set(walk + 1, result.expenses)
+          if (result.lastDoc) {
+            lastDocByPageRef.current.set(walk + 1, result.lastDoc)
+          }
+          if (!result.hasMore) break
+        }
+        walk += 1
+      }
+
+      if (pageDataRef.current.has(page)) {
+        setExpenses(pageDataRef.current.get(page)!)
+        setCurrentPage(page)
+      }
     },
-    [monthExpensesAll, applyClientPage]
+    [userId, yearMonth, monthExpenseCount]
   )
+
+  /** カテゴリー／タグ予算の実績突合用。必要なときだけ月全件を読む */
+  const ensureMonthExpensesAll = useCallback(async () => {
+    if (!userId) return []
+    if (allLoadedForKeyRef.current === yearMonthKey) {
+      return monthExpensesAll
+    }
+
+    setMonthExpensesAllLoading(true)
+    try {
+      const list = await expenseService.getExpensesInMonth(
+        userId,
+        yearMonth.year,
+        yearMonth.month
+      )
+      allLoadedForKeyRef.current = yearMonthKey
+      setMonthExpensesAll(list)
+      return list
+    } finally {
+      setMonthExpensesAllLoading(false)
+    }
+  }, [userId, yearMonth, yearMonthKey, monthExpensesAll])
 
   const refreshAfterMutation = useCallback(async () => {
     if (!userId) return
     setLoading(true)
+    setMonthlyLoading(true)
     try {
-      await loadDashboardMonthData()
+      await loadInitial()
     } finally {
       setLoading(false)
+      setMonthlyLoading(false)
     }
-  }, [userId, loadDashboardMonthData])
+  }, [userId, loadInitial])
 
   useEffect(() => {
     if (!userId) {
-      setMonthExpensesAll([])
+      resetPaging()
       setExpenses([])
       setMonthlyTotal(0)
+      setMonthExpenseCount(0)
       setLoading(false)
+      setMonthlyLoading(false)
       setCurrentPage(1)
       setTotalPages(1)
       setError(null)
@@ -122,30 +202,35 @@ export const useDashboardExpenses = (userId: string | undefined) => {
     const isCancelled = () => cancelled
 
     setLoading(true)
+    setMonthlyLoading(true)
     setError(null)
 
-    void loadDashboardMonthData({ cancelled: isCancelled }).finally(() => {
-      if (!isCancelled()) setLoading(false)
+    void loadInitial({ cancelled: isCancelled }).finally(() => {
+      if (!isCancelled()) {
+        setLoading(false)
+        setMonthlyLoading(false)
+      }
     })
 
     return () => {
       cancelled = true
     }
-  }, [userId, yearMonth, loadDashboardMonthData])
+  }, [userId, yearMonth, loadInitial, resetPaging])
 
   return {
     expenses,
+    monthExpensesAll,
+    monthExpensesAllLoading,
+    ensureMonthExpensesAll,
     loading,
     monthlyTotal,
-    /** 合計カードも一覧と同じロードに揃える */
-    monthlyLoading: loading,
+    monthlyLoading,
     currentPage,
     totalPages,
     goToPage,
     refreshAfterMutation,
     error,
-    /** 選択月に取得した支出の件数（ページング前の全件） */
-    monthExpenseCount: monthExpensesAll.length,
+    monthExpenseCount,
     selectedYearMonth: yearMonth,
     setSelectedYearMonth,
   }

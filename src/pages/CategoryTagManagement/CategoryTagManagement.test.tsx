@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '../../test/testUtils'
 import CategoryTagManagement from './CategoryTagManagement'
 import { useAuth } from '../../context/AuthContext'
 import { useCategories } from '../../hooks/useCategories'
+import { useIncomeCategories } from '../../hooks/useIncomeCategories'
 import { useTags } from '../../hooks/useTags'
 import { useUserName } from '../../hooks/useUserName'
 import type { User } from 'firebase/auth'
@@ -10,6 +11,7 @@ import type { User } from 'firebase/auth'
 // モック
 vi.mock('../../context/AuthContext')
 vi.mock('../../hooks/useCategories')
+vi.mock('../../hooks/useIncomeCategories')
 vi.mock('../../hooks/useTags')
 vi.mock('../../hooks/useUserName')
 vi.mock('../../components/CategoryForm', () => ({
@@ -17,6 +19,9 @@ vi.mock('../../components/CategoryForm', () => ({
 }))
 vi.mock('../../components/TagForm', () => ({
   TagForm: () => <div data-testid="tag-form">Tag Form</div>,
+}))
+vi.mock('../../components/IncomeCategoryModal', () => ({
+  IncomeCategoryModal: () => null,
 }))
 
 const mockUser = {
@@ -45,6 +50,12 @@ const mockUser = {
 describe('CategoryTagManagement', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useIncomeCategories).mockReturnValue({
+      categories: [],
+      loading: false,
+      error: null,
+      refreshCategories: vi.fn(),
+    })
   })
 
   it('should render category tag management page', () => {
@@ -74,6 +85,9 @@ describe('CategoryTagManagement', () => {
     render(<CategoryTagManagement />)
 
     expect(screen.getByText('カテゴリー・タグ管理')).toBeInTheDocument()
+    expect(screen.getByText('支出カテゴリー管理')).toBeInTheDocument()
+    expect(screen.queryByText('収入カテゴリー管理')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /収入カテゴリーを表示/ })).toBeInTheDocument()
     expect(screen.getByText('Test User')).toBeInTheDocument()
   })
 
@@ -105,8 +119,8 @@ describe('CategoryTagManagement', () => {
 
     render(<CategoryTagManagement />)
 
-    const categoryButton = screen.getByText(/カテゴリーを追加/)
-    await userEvent.click(categoryButton)
+    const categoryButtons = screen.getAllByText(/カテゴリーを追加/)
+    await userEvent.click(categoryButtons[0])
 
     await waitFor(() => {
       expect(screen.getByTestId('category-form')).toBeInTheDocument()
