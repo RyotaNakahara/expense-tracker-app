@@ -12,6 +12,7 @@ import {
   deleteBudget,
 } from '../../services/budgetService'
 import { expenseService } from '../../services/expenseService'
+import { incomeService } from '../../services/incomeService'
 import { previousCalendarMonth } from '../../utils/budgetMonth'
 import {
   buildYearMonthBudgetSpent,
@@ -72,6 +73,7 @@ const Budget = () => {
   const [saveOk, setSaveOk] = useState(false)
   const [bulkAmount, setBulkAmount] = useState('')
   const [spentByMonth, setSpentByMonth] = useState<Record<number, number>>({})
+  const [incomeByMonth, setIncomeByMonth] = useState<Record<number, number>>({})
   const [initialCarryIn, setInitialCarryIn] = useState(0)
 
   const loadYearTotals = useCallback(async () => {
@@ -80,11 +82,13 @@ const Budget = () => {
     setLoadError(null)
     setSaveOk(false)
     try {
-      const [totalLimits, spent, prevBudgetMap, prevSpent] = await Promise.all([
+      const [totalLimits, spent, income, prevBudgetMap, prevSpent, prevIncome] = await Promise.all([
         listTotalBudgetLimitsForYear(user.uid, year),
         expenseService.getSpentByMonthForYear(user.uid, year, 12),
+        incomeService.getIncomeByMonthForYear(user.uid, year, 12),
         listTotalBudgetLimitsForYear(user.uid, year - 1),
         expenseService.getSpentByMonthForYear(user.uid, year - 1, 12),
+        incomeService.getIncomeByMonthForYear(user.uid, year - 1, 12),
       ])
       const savedMonths = new Set<number>()
       for (let m = 1; m <= 12; m++) {
@@ -92,9 +96,10 @@ const Budget = () => {
       }
       setSavedTotalMonths(savedMonths)
       setSpentByMonth(spent)
+      setIncomeByMonth(income)
 
       const prevChain = computeCarryoverChain(
-        buildYearMonthBudgetSpent(year - 1, prevBudgetMap, prevSpent),
+        buildYearMonthBudgetSpent(year - 1, prevBudgetMap, prevSpent, prevIncome),
         0
       )
       setInitialCarryIn(prevChain[11]?.carryOut ?? 0)
@@ -247,7 +252,7 @@ const Budget = () => {
       budgetByMonth[m] = typeof parsed === 'number' ? parsed : null
     }
     const chain = computeCarryoverChain(
-      buildYearMonthBudgetSpent(year, budgetByMonth, spentByMonth),
+      buildYearMonthBudgetSpent(year, budgetByMonth, spentByMonth, incomeByMonth),
       initialCarryIn
     )
     const map: Record<number, MonthCarryover> = {}
@@ -255,7 +260,7 @@ const Budget = () => {
       map[row.month] = row
     }
     return map
-  }, [year, monthTotals, spentByMonth, initialCarryIn])
+  }, [year, monthTotals, spentByMonth, incomeByMonth, initialCarryIn])
 
   const applyBulkToEmpty = () => {
     const n = parseOptionalAmount(bulkAmount)
@@ -537,6 +542,7 @@ const Budget = () => {
                     <tr>
                       <th scope="col">月</th>
                       <th scope="col">全体予算</th>
+                      <th scope="col">収入</th>
                       <th scope="col">実績</th>
                       <th scope="col">繰入</th>
                       <th scope="col">有効予算</th>
@@ -568,6 +574,9 @@ const Budget = () => {
                               aria-label={`${m}月の全体予算`}
                               placeholder="未設定"
                             />
+                          </td>
+                          <td className="budget-num">
+                            ¥{(co?.income ?? incomeByMonth[m] ?? 0).toLocaleString()}
                           </td>
                           <td className="budget-num">
                             ¥{(co?.spent ?? spentByMonth[m] ?? 0).toLocaleString()}

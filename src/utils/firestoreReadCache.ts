@@ -33,6 +33,10 @@ export function spentYearCacheKey(userId: string, year: number, throughMonth: nu
   return `spent:${userId}:${year}:1-${throughMonth}`
 }
 
+export function incomeYearCacheKey(userId: string, year: number, throughMonth: number): string {
+  return `income:${userId}:${year}:1-${throughMonth}`
+}
+
 export function totalBudgetYearCacheKey(userId: string, year: number): string {
   return `totalBudget:${userId}:${year}`
 }

@@ -68,7 +68,7 @@ const Dashboard = () => {
     selectedYearMonth.year,
     selectedYearMonth.month
   )
-  const { carryover, loading: carryoverLoading } = useMonthBudgetCarryover(
+  const { carryover, loading: carryoverLoading, refresh: refreshCarryover } = useMonthBudgetCarryover(
     user?.uid,
     selectedYearMonth.year,
     selectedYearMonth.month
@@ -118,11 +118,13 @@ const Dashboard = () => {
   const handleExpenseSuccess = async () => {
     setShowExpenseForm(false)
     await refreshAfterMutation()
+    refreshCarryover()
   }
 
   const handleIncomeSuccess = async () => {
     setShowIncomeForm(false)
     await refreshIncomesAfterMutation()
+    refreshCarryover()
   }
 
   const listBusy = loadingExpenses
@@ -188,6 +190,7 @@ const Dashboard = () => {
                   used={monthlyTotal}
                   limit={totalBudget?.amountLimit ?? null}
                   carryIn={carryover?.carryIn ?? 0}
+                  income={monthlyIncomeTotal}
                   loading={budgetLoading || carryoverLoading}
                   budgetSettingsTo={`/budget?year=${selectedYearMonth.year}&month=${selectedYearMonth.month}`}
                 />
@@ -369,8 +372,14 @@ const Dashboard = () => {
           expense={selectedExpense}
           userId={user.uid}
           onClose={() => setSelectedExpense(null)}
-          onUpdate={() => void refreshAfterMutation()}
-          onDelete={() => void refreshAfterMutation()}
+          onUpdate={() => {
+            void refreshAfterMutation()
+            refreshCarryover()
+          }}
+          onDelete={() => {
+            void refreshAfterMutation()
+            refreshCarryover()
+          }}
         />
       )}
 
@@ -379,8 +388,14 @@ const Dashboard = () => {
           income={selectedIncome}
           userId={user.uid}
           onClose={() => setSelectedIncome(null)}
-          onUpdate={() => void refreshIncomesAfterMutation()}
-          onDelete={() => void refreshIncomesAfterMutation()}
+          onUpdate={() => {
+            void refreshIncomesAfterMutation()
+            refreshCarryover()
+          }}
+          onDelete={() => {
+            void refreshIncomesAfterMutation()
+            refreshCarryover()
+          }}
         />
       )}
     </div>

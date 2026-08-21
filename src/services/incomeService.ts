@@ -14,6 +14,12 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { monthlyTotalPeriodId } from './expenseService'
+import {
+  cacheGet,
+  cacheInvalidatePrefix,
+  cacheSet,
+  incomeYearCacheKey,
+} from '../utils/firestoreReadCache'
 import type { Income, CreateIncomeInput, UpdateIncomeInput } from '../types'
 
 const COLLECTION = 'incomes'
@@ -97,6 +103,39 @@ export const incomeService = {
     return total
   },
 
+  /**
+   * 指定年の1〜throughMonth の収入合計（円）。セッションキャッシュあり。
+   */
+  async getIncomeByMonthForYear(
+    userId: string,
+    year: number,
+    throughMonth = 12
+  ): Promise<Record<number, number>> {
+    const end = Math.min(12, Math.max(1, throughMonth))
+    const cacheKey = incomeYearCacheKey(userId, year, end)
+    const cached = cacheGet<Record<number, number>>(cacheKey)
+    if (cached) return { ...cached }
+
+    const pairs = await Promise.all(
+      Array.from({ length: end }, async (_, i) => {
+        const month = i + 1
+        const total = await this.getMonthlyIncomeTotalForDisplay(userId, year, month)
+        return [month, total] as const
+      })
+    )
+    const map: Record<number, number> = {}
+    for (let m = 1; m <= 12; m++) map[m] = 0
+    for (const [month, total] of pairs) {
+      map[month] = total
+    }
+    cacheSet(cacheKey, map)
+    return map
+  },
+
+  invalidateIncomeCaches(userId: string): void {
+    cacheInvalidatePrefix(`income:${userId}:`)
+  },
+
   async createIncome(userId: string, input: CreateIncomeInput): Promise<string> {
     const now = Timestamp.now()
     const incomeDate = Timestamp.fromDate(input.date)
@@ -114,6 +153,7 @@ export const incomeService = {
     })
     applyMonthlyIncomeDeltaInBatch(batch, userId, input.date, input.amount)
     await batch.commit()
+    this.invalidateIncomeCaches(userId)
     return incomeRef.id
   },
 
@@ -153,6 +193,7 @@ export const incomeService = {
     }
 
     await batch.commit()
+    this.invalidateIncomeCaches(oldUserId)
   },
 
   async deleteIncome(incomeId: string): Promise<void> {
@@ -170,5 +211,6 @@ export const incomeService = {
     batch.delete(incomeRef)
     applyMonthlyIncomeDeltaInBatch(batch, userId, incomeDate, -amount)
     await batch.commit()
+    this.invalidateIncomeCaches(userId)
   },
 }

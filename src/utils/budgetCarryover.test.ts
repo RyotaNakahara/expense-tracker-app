@@ -108,9 +108,41 @@ describe('buildYearMonthBudgetSpent', () => {
       { 1: 50, 2: 10 }
     )
     expect(list).toHaveLength(12)
-    expect(list[0]).toEqual({ year: 2026, month: 1, budgetLimit: 100, spent: 50 })
-    expect(list[1]).toEqual({ year: 2026, month: 2, budgetLimit: null, spent: 10 })
-    expect(list[2]).toEqual({ year: 2026, month: 3, budgetLimit: 200, spent: 0 })
+    expect(list[0]).toEqual({ year: 2026, month: 1, budgetLimit: 100, spent: 50, income: 0 })
+    expect(list[1]).toEqual({ year: 2026, month: 2, budgetLimit: null, spent: 10, income: 0 })
+    expect(list[2]).toEqual({ year: 2026, month: 3, budgetLimit: 200, spent: 0, income: 0 })
+  })
+
+  it('includes income by month when provided', () => {
+    const list = buildYearMonthBudgetSpent(2026, { 1: 100 }, { 1: 50 }, { 1: 20 })
+    expect(list[0]).toEqual({
+      year: 2026,
+      month: 1,
+      budgetLimit: 100,
+      spent: 50,
+      income: 20,
+    })
+  })
+})
+
+describe('computeCarryoverChain with income', () => {
+  it('adds income into available and carry-out', () => {
+    const result = computeCarryoverChain([
+      { year: 2026, month: 1, budgetLimit: 100_000, spent: 80_000, income: 30_000 },
+      { year: 2026, month: 2, budgetLimit: 100_000, spent: 50_000, income: 0 },
+    ])
+    // available = 100k + 0 + 30k = 130k; remaining = 50k
+    expect(result[0]).toMatchObject({
+      income: 30_000,
+      available: 130_000,
+      remaining: 50_000,
+      carryOut: 50_000,
+    })
+    expect(result[1]).toMatchObject({
+      carryIn: 50_000,
+      available: 150_000,
+      remaining: 100_000,
+    })
   })
 })
 

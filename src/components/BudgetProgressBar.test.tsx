@@ -24,6 +24,21 @@ describe('BudgetProgressBar', () => {
     expect(screen.getByText(/60/)).toBeInTheDocument()
   })
 
+  it('includes income in available budget', () => {
+    render(
+      <BudgetProgressBar
+        used={40_000}
+        limit={100_000}
+        income={20_000}
+        budgetSettingsTo="/budget"
+      />
+    )
+    // 40/120 ≈ 33%
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '33')
+    expect(screen.getByText(/収入/)).toBeInTheDocument()
+    expect(screen.getByText(/残り/)).toBeInTheDocument()
+  })
+
   it('includes carry-in in available budget', () => {
     render(
       <BudgetProgressBar

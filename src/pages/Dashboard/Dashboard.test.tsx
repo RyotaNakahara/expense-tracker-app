@@ -33,6 +33,7 @@ vi.mock('../../hooks/useMonthBudgetCarryover', () => ({
     carryover: null,
     loading: false,
     error: null,
+    refresh: vi.fn(),
   })),
 }))
 
@@ -143,6 +144,7 @@ describe('Dashboard', () => {
       carryover: null,
       loading: false,
       error: null,
+      refresh: vi.fn(),
     })
     vi.mocked(useMonthScopedBudgets).mockReturnValue({
       categoryBudgets: [],

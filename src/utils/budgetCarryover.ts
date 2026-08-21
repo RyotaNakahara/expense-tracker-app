@@ -2,8 +2,8 @@
  * 月次全体予算の繰越計算。
  *
  * 方針:
- * - 予算設定あり: 繰越(次月へ) = 予算 + 繰入 − 実績（マイナス可）
- * - 予算未設定: 繰越(次月へ) = 繰入 − 実績（実績があればマイナスになり得る）
+ * - 有効予算 = 予算（未設定は0）+ 繰入 + 収入
+ * - 繰越(次月へ) = 有効予算 − 実績（マイナス可）
  * - 超過・未設定月の支出は翌月の有効予算を減らす（マイナス繰越）
  */
 
@@ -13,6 +13,8 @@ export type MonthBudgetSpent = {
   /** null = 予算未設定 */
   budgetLimit: number | null
   spent: number
+  /** その月の収入合計（円） */
+  income?: number
 }
 
 export type MonthCarryover = {
@@ -20,9 +22,10 @@ export type MonthCarryover = {
   month: number
   budgetLimit: number | null
   spent: number
+  income: number
   /** 前月から繰り入れた額（マイナス可） */
   carryIn: number
-  /** 有効予算。予算あり: 予算+繰入 / 未設定: 繰入のみ */
+  /** 有効予算 = 予算(0可) + 繰入 + 収入 */
   available: number
   /** available − spent（マイナス可） */
   remaining: number
@@ -39,7 +42,8 @@ export function computeCarryoverChain(
 
   for (const m of months) {
     const spent = Number.isFinite(m.spent) ? m.spent : 0
-    const available = (m.budgetLimit ?? 0) + carryIn
+    const income = Number.isFinite(m.income) ? (m.income as number) : 0
+    const available = (m.budgetLimit ?? 0) + carryIn + income
     const remaining = available - spent
     const carryOut = remaining
     out.push({
@@ -47,6 +51,7 @@ export function computeCarryoverChain(
       month: m.month,
       budgetLimit: m.budgetLimit,
       spent,
+      income,
       carryIn,
       available,
       remaining,
@@ -62,7 +67,8 @@ export function computeCarryoverChain(
 export function buildYearMonthBudgetSpent(
   year: number,
   budgetByMonth: Record<number, number | null>,
-  spentByMonth: Record<number, number>
+  spentByMonth: Record<number, number>,
+  incomeByMonth: Record<number, number> = {}
 ): MonthBudgetSpent[] {
   const list: MonthBudgetSpent[] = []
   for (let month = 1; month <= 12; month++) {
@@ -71,6 +77,7 @@ export function buildYearMonthBudgetSpent(
       month,
       budgetLimit: budgetByMonth[month] ?? null,
       spent: spentByMonth[month] ?? 0,
+      income: incomeByMonth[month] ?? 0,
     })
   }
   return list
