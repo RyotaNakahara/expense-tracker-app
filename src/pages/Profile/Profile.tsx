@@ -1,22 +1,49 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { updateProfile } from 'firebase/auth'
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updateProfile,
+  verifyBeforeUpdateEmail,
+} from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext'
 import { useUserName } from '../../hooks/useUserName'
 import { db } from '../../firebase/config'
+import { mapAuthErrorMessage } from '../../utils/authErrors'
 import './Profile.css'
 
 const Profile = () => {
-  const { user, signOutUser } = useAuth()
+  const { user, signOutUser, refreshUser } = useAuth()
   const navigate = useNavigate()
   const { displayName, loading: loadingName } = useUserName(user)
 
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [name, setName] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
+  const [currentPassword, setCurrentPassword] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // 確認メール反映後など、Auth の最新情報を取り直す
+  useEffect(() => {
+    void refreshUser()
+
+    const syncLatestUser = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshUser()
+      }
+    }
+
+    window.addEventListener('focus', syncLatestUser)
+    document.addEventListener('visibilitychange', syncLatestUser)
+
+    return () => {
+      window.removeEventListener('focus', syncLatestUser)
+      document.removeEventListener('visibilitychange', syncLatestUser)
+    }
+  }, [refreshUser])
 
   useEffect(() => {
     if (displayName) {
@@ -24,8 +51,20 @@ const Profile = () => {
     }
   }, [displayName])
 
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email)
+    }
+  }, [user?.email])
+
+  const isEmailChanged =
+    Boolean(user?.email) && email.trim().toLowerCase() !== user!.email!.toLowerCase()
+
   const handleEdit = () => {
     setIsEditing(true)
+    setName(displayName || '')
+    setEmail(user?.email || '')
+    setCurrentPassword('')
     setError(null)
     setSuccess(null)
   }
@@ -33,6 +72,8 @@ const Profile = () => {
   const handleCancel = () => {
     setIsEditing(false)
     setName(displayName || '')
+    setEmail(user?.email || '')
+    setCurrentPassword('')
     setError(null)
     setSuccess(null)
   }
@@ -42,8 +83,30 @@ const Profile = () => {
 
     if (!user) return
 
-    if (!name.trim()) {
+    const trimmedName = name.trim()
+    const trimmedEmail = email.trim()
+
+    if (!trimmedName) {
       setError('名前を入力してください')
+      return
+    }
+
+    if (!trimmedEmail) {
+      setError('メールアドレスを入力してください')
+      return
+    }
+
+    const nameChanged = trimmedName !== (displayName || '')
+    const emailChanged =
+      Boolean(user.email) && trimmedEmail.toLowerCase() !== user.email!.toLowerCase()
+
+    if (!nameChanged && !emailChanged) {
+      setError('変更がありません')
+      return
+    }
+
+    if (emailChanged && !currentPassword) {
+      setError('メールアドレスを変更するには現在のパスワードが必要です')
       return
     }
 
@@ -52,32 +115,51 @@ const Profile = () => {
     setSuccess(null)
 
     try {
-      // Firebase AuthのdisplayNameを更新
-      await updateProfile(user, {
-        displayName: name.trim(),
-      })
+      if (nameChanged) {
+        await updateProfile(user, {
+          displayName: trimmedName,
+        })
 
-      // Firestoreのusersコレクションも更新
-      const userRef = doc(db, 'users', user.uid)
-      await setDoc(
-        userRef,
-        {
-          name: name.trim(),
-          updatedAt: new Date(),
-        },
-        { merge: true }
-      )
+        const userRef = doc(db, 'users', user.uid)
+        await setDoc(
+          userRef,
+          {
+            name: trimmedName,
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        )
+      }
 
-      setSuccess('プロフィールを更新しました')
-      setIsEditing(false)
-      
-      // ページをリロードして最新の情報を反映
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
+      if (emailChanged) {
+        if (!user.email) {
+          throw new Error('現在のメールアドレスを取得できません')
+        }
+
+        const credential = EmailAuthProvider.credential(user.email, currentPassword)
+        await reauthenticateWithCredential(user, credential)
+        await verifyBeforeUpdateEmail(user, trimmedEmail)
+      }
+
+      if (emailChanged) {
+        setSuccess(
+          nameChanged
+            ? '名前を更新しました。新しいメールアドレス宛に確認メールを送信しました。リンクを開くとメールアドレスが変更されます。'
+            : '新しいメールアドレス宛に確認メールを送信しました。リンクを開くとメールアドレスが変更されます。'
+        )
+        setIsEditing(false)
+        setCurrentPassword('')
+        setEmail(user.email || '')
+      } else {
+        setSuccess('プロフィールを更新しました')
+        setIsEditing(false)
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
     } catch (err) {
       console.error('Failed to update profile', err)
-      setError('プロフィールの更新に失敗しました')
+      setError(mapAuthErrorMessage(err, 'プロフィールの更新に失敗しました'))
     } finally {
       setSubmitting(false)
     }
@@ -145,15 +227,39 @@ const Profile = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>メールアドレス</label>
+                    <label htmlFor="email">メールアドレス</label>
                     <input
                       type="email"
-                      value={user.email || ''}
-                      disabled
-                      className="disabled-input"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="メールアドレスを入力"
+                      required
+                      disabled={submitting}
+                      autoComplete="email"
                     />
-                    <p className="form-hint">メールアドレスは変更できません</p>
+                    <p className="form-hint">
+                      変更する場合は確認メールのリンクを開くと反映されます
+                    </p>
                   </div>
+
+                  {isEmailChanged && (
+                    <div className="form-group">
+                      <label htmlFor="currentPassword">現在のパスワード</label>
+                      <input
+                        type="password"
+                        id="currentPassword"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="現在のパスワードを入力"
+                        disabled={submitting}
+                        autoComplete="current-password"
+                      />
+                      <p className="form-hint">
+                        メールアドレス変更の確認のため入力してください
+                      </p>
+                    </div>
+                  )}
 
                   {error && <p className="error-message">{error}</p>}
                   {success && <p className="success-message">{success}</p>}
@@ -178,6 +284,7 @@ const Profile = () => {
                 </form>
               ) : (
                 <div className="profile-details">
+                  {success && <p className="success-message">{success}</p>}
                   <div className="profile-detail-row">
                     <span className="profile-detail-label">名前</span>
                     <span className="profile-detail-value">
@@ -227,4 +334,3 @@ const Profile = () => {
 }
 
 export default Profile
-

@@ -9,6 +9,7 @@ vi.mock('../context/AuthContext', () => ({
     user: null,
     loading: false,
     signOutUser: vi.fn(),
+    refreshUser: vi.fn().mockResolvedValue(undefined),
   })),
   AuthProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
