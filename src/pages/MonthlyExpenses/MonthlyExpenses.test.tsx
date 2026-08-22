@@ -55,6 +55,7 @@ describe('MonthlyExpenses', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -94,6 +95,7 @@ describe('MonthlyExpenses', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: null,
@@ -133,6 +135,7 @@ describe('MonthlyExpenses', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',

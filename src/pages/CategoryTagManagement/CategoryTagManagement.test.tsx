@@ -63,6 +63,7 @@ describe('CategoryTagManagement', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -98,6 +99,7 @@ describe('CategoryTagManagement', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -134,6 +136,7 @@ describe('CategoryTagManagement', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
