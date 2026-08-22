@@ -1,5 +1,5 @@
 // React からコンテキスト/フック周りの機能と型をインポート
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
+import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react'
 // Firebase Authentication で利用するメソッドと型をインポート
 import { onAuthStateChanged, signOut, User } from 'firebase/auth'
 // 初期化済み Firebase アプリから取り出した認証インスタンス
@@ -10,6 +10,8 @@ interface AuthContextValue {
   user: User | null
   loading: boolean
   signOutUser: () => Promise<void>
+  /** Firebase Auth から最新のユーザー情報を再取得する（メール変更反映など） */
+  refreshUser: () => Promise<void>
 }
 
 // 認証関連の値を共有するためのコンテキストを作成
@@ -24,6 +26,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null)
   // 認証状態の確認中かどうか
   const [loading, setLoading] = useState(true)
+  // user オブジェクト参照が変わらなくても再描画するためのカウンタ
+  const [, setUserEpoch] = useState(0)
 
   useEffect(() => {
     // Firebase Auth の認証状態を監視し、ユーザー情報を保持する
@@ -41,10 +45,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await signOut(auth)
   }
 
+  const refreshUser = useCallback(async () => {
+    const currentUser = auth.currentUser
+    if (!currentUser) {
+      setUser(null)
+      return
+    }
+
+    await currentUser.reload()
+    setUser(auth.currentUser)
+    // reload() は同一参照を更新するため、epoch で購読側の再描画を促す
+    setUserEpoch((epoch) => epoch + 1)
+  }, [])
+
   const value: AuthContextValue = {
     user,
     loading,
     signOutUser,
+    refreshUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -60,5 +78,3 @@ export const useAuth = () => {
 
   return context
 }
-
-

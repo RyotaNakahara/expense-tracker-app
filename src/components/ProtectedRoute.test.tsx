@@ -40,6 +40,7 @@ describe('ProtectedRoute', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
 
     render(
@@ -56,6 +57,7 @@ describe('ProtectedRoute', () => {
       user: null,
       loading: true,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
 
     render(
@@ -73,6 +75,7 @@ describe('ProtectedRoute', () => {
       user: null,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
 
     render(

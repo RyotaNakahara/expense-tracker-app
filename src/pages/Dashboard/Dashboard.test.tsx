@@ -172,6 +172,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -191,6 +192,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: null,
@@ -214,6 +216,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -236,6 +239,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -258,6 +262,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -280,6 +285,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -306,6 +312,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -328,6 +335,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -349,6 +357,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -379,6 +388,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',
@@ -417,6 +427,7 @@ describe('Dashboard', () => {
       user: mockUser,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(useUserName).mockReturnValue({
       displayName: 'Test User',

@@ -23,6 +23,7 @@ describe('Login', () => {
       user: null,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
 
     render(<Login />)
@@ -37,6 +38,7 @@ describe('Login', () => {
       user: null,
       loading: true,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
 
     render(<Login />)
@@ -51,6 +53,7 @@ describe('Login', () => {
       user: null,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(signInWithEmailAndPassword).mockResolvedValue({
       user: {} as never,
@@ -82,6 +85,7 @@ describe('Login', () => {
       user: null,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
     vi.mocked(signInWithEmailAndPassword).mockRejectedValue(new Error('Invalid credentials'))
 
@@ -107,6 +111,7 @@ describe('Login', () => {
       user: null,
       loading: false,
       signOutUser: vi.fn(),
+      refreshUser: vi.fn(),
     })
 
     render(<Login />)
